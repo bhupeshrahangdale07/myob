@@ -1,0 +1,144 @@
+<template>
+    <div class="slds-section slds-is-open">
+        <div class="slds-card__body slds-card__body_inner">
+            <template if:true={showLoading}>
+                <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+            </template>
+            <div class="slds-section-title_divider slds-var-m-top_medium slds-var-m-bottom_medium">
+                {subTitleOne}
+            </div>
+            <div>
+                {descriptionOne}
+            </div>
+            <br/>
+            <div>
+                <ol class="slds-setup-assistant">
+                    <!-- Sync Quickbook with Salesforce -->
+                    <template if:true={showMYOBConnection}>
+                        <div aria-hidden="false" class="slds-summary-detail__content">
+                            <div class="slds-setup-assistant__step-detail">
+                                <div class="row">
+                                    <p class="stepTitle"><b>{subSubtitleOne}</b></p>
+                                    <p>{descriptionTwo}</p>
+                                    <br/>
+                                    <div style="width: 95%;">
+                                        <lightning-input name="Client ID" 
+                                                         pattern="^\S+$" message-when-pattern-mismatch="No spaces allowed"
+                                                            type="text" 
+                                                            label="Enter Client ID" 
+                                                            value={consumerId} 
+                                                            onchange={updateAuthValue} 
+                                                            disabled={disableInput} 
+                                                            required></lightning-input>
+                                    </div>
+                                    <br/>
+                                    <div style="width: 95%;">
+                                        <lightning-input name="Client Secret"  pattern="^\S+$" message-when-pattern-mismatch="No spaces allowed"
+                                                        type="text" 
+                                                        label="Enter Client Secret" 
+                                                        value={consumerSecret} 
+                                                        onchange={updateAuthValue} 
+                                                        disabled={disableInput} 
+                                                        required></lightning-input>
+                                    </div>
+                                    <br/>
+                                    <div class="icon">
+                                        <div style="width: 95%;">
+                                            <lightning-input data-id="redirectLink" 
+                                                                type="url" 
+                                                                label={redirectUrlLabel}
+                                                                placeholder={redirectUrl}
+                                                                onchange={updateAuthValue}
+                                                                disabled="true" 
+                                                                required></lightning-input>
+                                        </div>
+                                    </div>
+                                    <br/>
+                                    <div class="slds-align_absolute-center">
+                                        <lightning-button variant="brand" 
+                                                            label="Show Instructions" 
+                                                            title="Show Instructions" 
+                                                            class="slds-m-right_x-small" 
+                                                            onclick={showInstruction} 
+                                                            icon-name="utility:preview"></lightning-button>
+                                        <lightning-button if:true={showAuthReset}
+                                                            variant="destructive-text"
+                                                            label=Reset 
+                                                            title="Reset"
+                                                            class="slds-m-right_x-small"
+                                                            onclick={handleAuthReset}></lightning-button>
+                                        <lightning-button if:true={showAuthSaveBtn}
+                                                            variant="brand"
+                                                            label=Save 
+                                                            disabled={disableAuthSaveBtn} 
+                                                            title="Save" 
+                                                            onclick={handleAuthSave}></lightning-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </ol>
+            </div>
+            <br/>
+            <template if:true={showMYOBCompanyFile}>
+                <div class="slds-section-title_divider slds-var-m-top_medium slds-var-m-bottom_medium">
+                    {subTitleTwo}
+                </div>
+                <div>
+                    {descriptionThree}
+                </div>
+                <br/>
+                <div class="slds-setup-assistant__step-detail" style="margin-top: 15px; width: 95%;">
+                    <lightning-combobox name="CompanyFiles"
+                                        label="Company Files"
+                                        placeholder="-- Please select the type of Environment --"
+                                        value={companyFileValue}
+                                        options={companyFileOptions}
+                                        onchange={updateCompanyFileValue}
+                                        disabled={disableCompanyFileInput} 
+                                        required></lightning-combobox>
+                </div>
+                <br/>
+                <div class="slds-align_absolute-center">
+                    <lightning-button if:true={showFileReset}
+                                        variant="destructive-text" 
+                                        label="Reset" 
+                                        title="Reset" 
+                                        class="slds-m-right_x-small" 
+                                        onclick={handleCompanyFileReset}></lightning-button>
+
+                    <lightning-button if:true={showFileSaveBtn}
+                                        variant="brand" 
+                                        label="Save" 
+                                        title="Save" 
+                                        class="slds-var-m-right_x-small buttonColor" 
+                                        onclick={syncCompanyFileSave} 
+                                        disabled={disableFileSaveBtn}></lightning-button>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div>
+        <c-modal-pop-up show-modal={showModal} 
+                        show-positive={showPositiveButton}
+                        show-negative={showNegativeButton}
+                        positive-button-label={positiveButtonLabel}
+                        onpositive={closeModal}
+                        onclose={closeModal}>
+            <div slot="header">
+                <h2 slot="header" id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Instructions to get Consumer Key and Secret</h2>
+            </div>
+            <div slot="body">
+                <ol class="slds-list_ordered">
+                    <li>Navigate to https://developer.intuit.com/app/developer/dashboard.</li>
+                    <li>Click the "Create an App" button.</li>
+                    <li>Select the platform you want to develop for App.</li>
+                    <li>Give your app a name and Select an Scope.</li>
+                    <li>In Development Setting their is a 'Keys & Credentials' tab that will get Client ID and Client Secret.</li>
+                    <li>{redirectUrlLabel}</li>
+                </ol>                            
+            </div>
+        </c-modal-pop-up>
+    </div>
+</template>

@@ -1,0 +1,191 @@
+.setupConfig .slds-card__header.slds-grid{
+    border-bottom: 3px solid #6602A3;
+    box-shadow: 3px 0px 3px #6602A3;
+    padding: 22px;
+    margin-top: -10px;
+    margin-left: -4px;
+}
+.slds-section-title_divider.slds-m-top_medium.slds-m-bottom_medium{
+    font-size: .75rem;
+    line-height: 1.25;
+    color: black;
+    text-transform: uppercase;
+    letter-spacing: .0625rem;
+    padding: 0.5rem 1rem;
+    background: var(--slds-g-color-neutral-base-95, rgb(243, 243, 243));
+}
+.iconColor{
+  --slds-c-icon-color-foreground-default: #A336F0;
+  /*--slds-c-icon-color-background: gray;*/
+  /*--lwc-colorTextIconDefault: orange;*/
+}
+.buttonColor{
+    --slds-c-button-brand-color-border : #A336F0;
+    --slds-c-button-brand-color-background-active : #A336F0;
+    --slds-c-button-brand-color-background : #A336F0;
+    --slds-c-button-brand-color-background-hover : #6602A3;
+}
+.buttonIcon{
+  margin-top: 6px;
+  margin-right: 10px;
+}
+.buttonIconColor{
+  background-color: #949aa3;
+  border-color: #333;
+  color: #A336F0;
+}
+/* .slds-button_icon-brand{
+  slds-button_icon-current-color :  #A336F0;;
+} */
+/*.slds-button_icon-brand {
+  background-color: #949aa3;
+  border-color: #333;
+  color: #A336F0;
+}*/
+/* .spinner{
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+} */
+.spinnerIcon{
+  --lwc-brandPrimary: #6602A3;
+}
+.column{
+    float: left;
+    padding: 10px;
+}  
+.row{
+    width: 100%;
+}
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.slds-progress-bar__value{
+  color: #A336F0;
+}
+.slds-progress-bar__value_success{
+  color: #A336F0;
+}
+.progress-bar {
+  list-style: none;
+  /*color:#fff;*/
+  margin-top: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  counter-reset: container 0;
+}
+.progress-bar li {
+  position: relative;
+  margin-left: 40px;
+  margin-top: 50px;
+  counter-increment: container 1;
+  color: #c9c7c5;
+}
+.progress-bar li::before {
+    content: counter(container);
+    text-align: center;
+    position: absolute;
+    height: 25px;
+    width: 25px;
+    border: 2px solid #c9c7c5;
+    border-radius: 50%;
+    left: -40px;
+    top: -5px;
+    z-index: 10;
+    background-color: #ffffff;
+}
+.progress-bar li::after {
+  content: "";
+  position: absolute;
+  height: 90px;
+  width: 2px;
+  background-color: #949aa3;
+  z-index: 1;
+  left: -27px;
+  top: -70px;
+}
+.progress-bar li.active::after {
+  background-color: #A336F0;
+}
+.progress-bar li:first-child:after {
+  display: none;
+}
+/*.progress-bar li:last-child:after{*/
+/*  display:none;  */
+/*}*/
+.progress-bar li.active::before {
+  color: #A336F0;
+  border: 2px solid #6602A3;
+  /* content: "\2713"; */
+}
+.progress-bar li.active {
+  color: #A336F0;
+}
+.stepTitle{
+    font-size: x-large;
+}
+.table-resp {
+  border-collapse: collapse;
+  margin-left: 1em;
+}
+.table-resp caption {
+  text-align: left;
+  width: 95vw;
+}
+@media (min-width: 768px) {
+  .table-resp {
+    margin-top: 3em;
+    position: relative;
+  }
+  .table-resp caption {
+    position: absolute;
+    top: -2em;
+    margin-bottom: 0.75em;
+  }
+  .table-resp thead {
+    text-align: left;
+    background-color: #333;
+    color: white;
+  }
+  .table-resp td, .table-resp th {
+    padding: 0.25em 0.5em;
+  }
+  .table-resp td:nth-child(2), .table-resp th:nth-child(2) {
+    border-left: 3px solid #fff;
+  }
+}
+@media (max-width: 767px) {
+  thead {
+    display: none;
+  }
+
+  .table-resp {
+    display: block;
+    margin-top: 1em;
+  }
+
+  td {
+    display: block;
+  }
+
+  td:first-child {
+    font-weight: 700;
+    margin-top: 0.75em;
+    margin-bottom: 0;
+  }
+
+  td:nth-child(2) {
+    margin-top: 0;
+  }
+}
+/* Uninteresting stuff below here */
+html {
+  font: 18px "Iowan Old Style", serif;
+}
+.icon{
+  display: flex;
+}

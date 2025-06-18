@@ -1,0 +1,352 @@
+<template>
+    <template lwc:if={showLoading}>
+        <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+    </template>
+    <template if:true={isShowModal}>
+        <c-customer-create from-generate-invoice={fromGenerateInvoice} 
+                           customer-id={customerId}
+                           onflagchange={handleFlagChange}></c-customer-create>
+    </template>
+    <lightning-card variant="narrow" class="customCard">
+        <p class="cardHeading">{componentTitle}</p>
+        <template if:true={existingInvoiceRow}>
+            <div class="existingInvoiceRowUi slds-p-horizontal_small slds-text-align_right" style="font-size: 16px;">
+                <span style="border-right: 2px solid #80808047; padding-right: 10px;">Due <strong>{syncDue}</strong></span>
+                <span style="border-right: 2px solid #80808047; padding-left: 10px; padding-right: 10px;">Total <strong>{syncTotal}</strong></span>
+                <span style="padding-left: 10px;">Paid <strong>{syncPaid}</strong></span>
+            </div>
+        </template>
+        <lightning-layout pull-to-boundary="medium">
+            <lightning-layout-item size="8" padding="around-large">
+                <template if:true={flagForCustomerList}>
+                    <div class="slds-p-horizontal_small slds-col slds-size_4-of-8">
+                        <abbr title="required" class="slds-required">*</abbr>{labelOne}
+                        <c-multi-select-pick-list style="width: 30%;"
+                                                  name="selectCustomer"
+                                                  placeholder-data="Please Select Customer"
+                                                  selected-value={selectedCustomer} 
+                                                  options={customerPicklistOrdered} 
+                                                  onselectoption={updateCustomerValues}
+                                                  elementname="Customer" 
+                                                  label=""></c-multi-select-pick-list> </br>
+                    </div>
+                </template>
+                <template if:true={selectedCustomer}>
+                    <div class="slds-p-horizontal_small slds-col slds-size_4-of-8">
+                        <div if:true={flagForCustomerBillingAddr} class="slds-p-left_small">
+                            <p style="margin-bottom: 8px;">Billing Address:</p>
+                            <p if:false={customerBillingAddr.BillAddrStreet}> {customerBillingAddr.Name}</p>
+                            <p if:true={customerBillingAddr.BillAddrStreet}> {customerBillingAddr.BillAddrStreet}</p>
+                            <p if:true={customerBillingAddr.BillAddrStreet}> {customerBillingAddr.BillAddrCity} {customerBillingAddr.BillAddrState} {customerBillingAddr.BillAddrPostalCode}</p>
+                            <p if:true={customerBillingAddr.BillAddrStreet}> {customerBillingAddr.BillAddrCountry}</p>
+                        </div>
+                    </div>
+                </template>
+            </lightning-layout-item>
+            <lightning-layout-item size="4" padding="around-large">
+                <div if:true={existingInvoiceRow}><p class="slds-m-left_small">Invoice ID : {invoiceId}</p></div>
+                <div class="slds-p-horizontal_small slds-col slds-size_4-of-4">
+                    <lightning-input type="text" 
+                                     name="invoiceNumber"
+                                     label="Invoice Number" 
+                                     value={invoiceData.invoiceNumber} 
+                                     onchange={updateInvoiceValues} 
+                                     class="validate" 
+                                     required></lightning-input>
+                </div>
+                <div class="slds-p-horizontal_small slds-col slds-size_4-of-4">
+                    <lightning-input type="text" 
+                                     name="customerPONumber" 
+                                     label="Customer PO Number" 
+                                     value={invoiceData.customerPONumber} 
+                                     onchange={updateInvoiceValues} 
+                                     class="validate" 
+                                     required></lightning-input>
+                </div>
+                <div class="slds-p-horizontal_small slds-col slds-size_4-of-4">
+                    <lightning-input type="date" 
+                                     name="invoiceDate" 
+                                     label="Issue Date" 
+                                     value={invoiceData.invoiceDate} 
+                                     date-style="short"
+                                     onchange={updateInvoiceValues} 
+                                     class="validate" 
+                                     required></lightning-input>
+                </div>
+                <div class="slds-p-horizontal_small slds-col slds-size_4-of-4">
+                    <lightning-input type="date" 
+                                     name="invoiceDueDate" 
+                                     label="Due Date" 
+                                     value={invoiceData.invoiceDueDate}
+                                     date-style="short"
+                                     onchange={updateInvoiceValues} 
+                                     class="validate" 
+                                     required></lightning-input>
+                </div>
+                <div class="slds-p-horizontal_small slds-col slds-size_4-of-4">
+                    <lightning-radio-group type="radio"
+                                           name="amountsAre"
+                                           label="Amounts Are"
+                                           options={taxOption}
+                                           value={invoiceData.amountsAre}
+                                           onchange={updateInvoiceValues}
+                                           class ="radioInput"></lightning-radio-group>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+        <div class="slds-p-around_large invoiceForm">
+            <div class="rowSection" style="width: 100%; scroll-behavior: auto; overflow-y: auto;">
+                <table class="productTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">ITEM ID</th>
+                            <th style="width: 14%;">DESCRIPTION</th>
+                            <th style="width: 15%;"><abbr title="required" class="slds-required">*</abbr>CATEGORY<lightning-helptext content="Use categories to classify transactions"></lightning-helptext></th>
+                            <th style="width: 10%;">UNIT<lightning-helptext content="Unit of measure. For example cartons, boxes, kgs, hours etc."></lightning-helptext></th>
+                            <th style="width: 8%;">NO OF UNITS</th>
+                            <th style="width: 8%;">UNIT PRICE</th>
+                            <th style="width: 10%;">DISCOUNT (%)</th>
+                            <th style="width: 10%;"><abbr title="required" class="slds-required">*</abbr>AMOUNT ($)</th>
+                            <th style="width: 10%;"><abbr title="required" class="slds-required">*</abbr>TAX CODE</th>
+                        </tr>
+                    </thead>
+                    <template if:true={flagForLineItemRecords}>
+                        <tbody>
+                            <template for:each={lineitemRecords} for:item="li">
+                                <tr key={li.id} class="alignmentTr">
+                                    <td>
+                                        <c-multi-select-pick-list data-id={li.id}
+                                                                name="itemId"
+                                                                placeholder-data="Select Item"
+                                                                selected-value={li.itemId} 
+                                                                options={itemIdOption} 
+                                                                onselectoption={updateLineItemValues} 
+                                                                elementname="Item"
+                                                                label=""></c-multi-select-pick-list>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id} 
+                                                        name="description" 
+                                                        type="text"
+                                                        placeholder="Description here..."
+                                                        value={li.Description} 
+                                                        label="Description" 
+                                                        variant="label-hidden" 
+                                                        onchange={updateLineItemValues}
+                                                        class="mobileInput"></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id} 
+                                                            name="category" 
+                                                            value={li.Category} 
+                                                            label="Category"
+                                                            placeholder="Product category"
+                                                            variant="label-hidden" 
+                                                            options={categoryOption}
+                                                            onchange={updateLineItemValues}
+                                                            disabled={liDisabledField}></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id}
+                                                        name="unit" 
+                                                        value={li.UnitOfMeasure} 
+                                                        label="Unit" 
+                                                        variant="label-hidden"
+                                                        type="text" 
+                                                        step="any"
+                                                        onchange={updateLineItemValues}
+                                                        class="validate"></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id}
+                                                        name="noOfUnits" 
+                                                        value={li.UnitCount} 
+                                                        label="No of Units" 
+                                                        variant="label-hidden"
+                                                        type="number" 
+                                                        step="any"
+                                                        onchange={updateLineItemValues}
+                                                        class="validate"></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id}
+                                                        name="unitPrice" 
+                                                        value={li.UnitPrice} 
+                                                        label="Unit Price" 
+                                                        variant="label-hidden"
+                                                        type="number" 
+                                                        step="any"
+                                                        onchange={updateLineItemValues}
+                                                        class="validate"></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id}
+                                                        name="discountPercentage" 
+                                                        value={li.DiscountPercent} 
+                                                        label="Discount Percentage" 
+                                                        variant="label-hidden"
+                                                        type="number" 
+                                                        step="any"
+                                                        onchange={updateLineItemValues}
+                                                        class="validate"></lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input data-id={li.id}
+                                                        name="amount" 
+                                                        value={li.Amount} 
+                                                        label="Amount" 
+                                                        variant="label-hidden"
+                                                        type="number" 
+                                                        step="any"
+                                                        onchange={updateLineItemValues}
+                                                        class="validate"
+                                                        disabled={liDisabledField}></lightning-input>
+                                    </td>
+                                    <td>
+                                        <c-multi-select-pick-list data-id={li.id}
+                                                                name="taxCode"
+                                                                placeholder-data="Select Tax Code"
+                                                                selected-value={li.TaxCode} 
+                                                                options={taxCodeOption} 
+                                                                onselectoption={updateLineItemValues} 
+                                                                elementname="Tax"
+                                                                label=""></c-multi-select-pick-list>
+                                    </td>
+                                    <td>
+                                        <lightning-button-icon icon-name="utility:delete" 
+                                                            size="medium" 
+                                                            data-amount={li.amount}
+                                                            data-id={li.id} 
+                                                            data-tax={li.taxable} 
+                                                            alternative-text="Delete LineItem"
+                                                            title="Delete LineItem"
+                                                            onclick={removeLineItemRow}
+                                                            class="slds-m-left_xx-small my-icon"></lightning-button-icon>
+                                    </td>
+                                </tr>
+                                </template>
+                                <tr>
+                                    <td>
+                                        <lightning-button-icon icon-name="utility:add" 
+                                                                size="medium" 
+                                                                alternative-text="Add LineItem"
+                                                                title="Add LineItem"
+                                                                onclick={addLineItemRow}
+                                                                class="slds-m-left_xx-small"></lightning-button-icon>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                </table>
+            </div>
+            <div class="slds-m-top-large">
+                <template if:true={flagForBilling}>
+                    <lightning-layout pull-to-boundary="medium">
+                        <lightning-layout-item size="9" class="slds-p-left_large">
+                            <div class="slds-p-horizontal_small slds-col slds-size_6-of-8">
+                                {labelTwo}<lightning-helptext content="Use categories to classify transactions"></lightning-helptext>
+                                <lightning-textarea name="notesToCustomer"
+                                                    value={notesToCustomer}
+                                                    label="Notes to Customer"
+                                                    placeholder="Select the Notes" 
+                                                    variant="label-hidden"
+                                                    options={notesToCustomerOption} 
+                                                    onchange={updateLineItemValues}
+                                                    class="secondRowAlignment"></lightning-textarea>
+                            </div>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="3" class="slds-p-right_xx-large">
+                            <div class="slds-col slds-size_2-of-4" style="width: 150px;">
+                                <p class="invoiceBillingSec">{labelThree}</p>
+                                <lightning-input label="Subtotal"
+                                                 value={invoiceSubtotal} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input>
+                            </div>
+                            <lightning-layout pull-to-boundary="small">
+                                <lightning-layout-item size="6" padding="around-small">
+                                    <div class="slds-col slds-size_6-of-6" style="width: 150px;">
+                                        <p class="invoiceBillingSec">{labelFour}</p>
+                                        <lightning-input name="invoiceFreight"
+                                                        label="Freight ($)"
+                                                        value={invoiceFreight} 
+                                                        type="number" 
+                                                        variant="label-hidden"
+                                                        onchange={updateBillingValues} ></lightning-input>
+                                    </div>
+                                </lightning-layout-item>
+                                <lightning-layout-item size="6" padding="around-small" style="width: 150px;">
+                                    <div class="slds-col slds-size_6-of-6">
+                                        <p class="invoiceBillingSec">{labelFive}</p>
+                                        <c-multi-select-pick-list name="invoiceFreightTax"
+                                                                placeholder-data="Select Tax Code"
+                                                                selected-value={invoiceFreightTax} 
+                                                                options={freightTaxOption} 
+                                                                onselectoption={updateBillingValues} 
+                                                                elementname="Freight"
+                                                                label=""></c-multi-select-pick-list>
+                                    </div>
+                                </lightning-layout-item>
+                            </lightning-layout>
+                            <div class="slds-m-bottom--small slds-col slds-size_2-of-3" style="width: 150px;">
+                                <p class="invoiceBillingSec">{labelSix}</p>
+                                <lightning-input label="Tax"
+                                                 value={invoiceTax} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input>
+                            </div>
+                            <div class="slds-m-bottom--small slds-col slds-size_2-of-3" style="width: 150px;">
+                                <p class="invoiceBillingSec">{labelSeven}</p>
+                                <lightning-input label="Total"
+                                                 value={invoiceTotal} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input>
+                            </div>
+                            <div class="slds-m-bottom--small slds-col slds-size_2-of-3" style="width: 150px;">
+                                <p class="invoiceBillingSec">{labelEight}</p>
+                                <lightning-input label="Amount paid ($)"
+                                                name="invoiceAmountPaid"
+                                                value={invoiceAmountPaid} 
+                                                class="validate"
+                                                type="number" 
+                                                step="any"
+                                                variant="label-hidden"
+                                                onchange={updateLineItemValues}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_2-of-3" style="width: 150px;">
+                                <p class="invoiceBillingSec">{labelNine}</p>
+                                <lightning-input label="Balance Due"
+                                                 value={invoiceBalanceDue} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input>
+                            </div>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </template>
+            </div>
+        </div>
+        <div class="actionSection" align="center">
+            <footer>
+                <button class="slds-button slds-button_brand buttonColor" onclick={clearHandler}>Clear</button>
+                <button class="slds-button slds-button_brand buttonColor" if:true={saveEnable} onclick={createInvoiceHandler} disabled={disableSave}>Save</button>
+                <button class="slds-button slds-button_brand buttonColor" if:true={saveAndSendEnable} onclick={createNsendInvoiceHandler} disabled={disableSaveNsend}>Save & Send</button>
+            </footer>
+        </div>
+    </lightning-card>
+</template>

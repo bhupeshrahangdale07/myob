@@ -1,0 +1,67 @@
+/*All MYOB Icon Colors Hexcode*/
+.myobIcon{
+    color: #ffffff;
+    color: #d20980;
+    color: #9c0b93;
+    color: #A336F0;
+    color: #6602A3;
+}   
+.integration{
+    color: #d20980;
+    display: grid;
+    text-align: center;
+    font-size: 25px;
+    margin-top: 15px;
+}
+.leftNavigation{    
+    width: 20%;
+    box-shadow: 3px -3px 3px #6602A3;
+    margin: 0px;
+    margin-left: 13px !important;
+    margin-top: -20px;
+    margin-bottom: -12px;
+}
+.navigation{
+    text-align: center;
+}
+.rightNavigation{    
+    width: 82%;
+    padding: 0px 0px 0px 4px;
+    margin-top: -14px;
+}
+.lightning-layout.slds-grid.slds-gutters{
+    margin-top: -10px;
+    margin-bottom: 0px;
+}
+
+@media only screen and (max-height: 1200px) and (min-height: 900px){
+    .rightNavigation{
+        min-height: 820px;
+        max-height: 820px;
+        overflow-y: auto;
+    }
+}
+
+@media only screen and (max-height: 900px) and (min-height: 500px){
+    .rightNavigation{
+        min-height: 610px;
+        max-height: 610px;
+        overflow-y: auto;
+    }
+}
+/*.slds-card__header.slds-grid {
+    padding: 0px;
+    margin: 0px;
+}*/
+/*.slds-card__header.slds-grid {
+    display: none;
+}*/
+/*.lightningCard .slds-card__header.slds-grid {
+    display: none;
+}*/
+.slds-card__header.slds-grid {
+    padding: 0px;
+}
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}

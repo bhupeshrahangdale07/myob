@@ -1,0 +1,83 @@
+<template>
+    <template if:true={isShowModal}>
+        <template if:true={showLoading}>
+            <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+        </template>
+
+        <!-- Modal Header -->
+        <div class="slds-modal slds-fade-in-open slds-backdrop">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">Invoice Sync in MYOB</h2>
+                </header>
+
+                <!-- Modal Body -->
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p class="slds-p-bottom_small" style="font-size: 14px;">Please review the data once before proceeding further.</p>
+                    
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr>
+                                <th>Fields</th>
+                                <th>Salesforce Values</th>
+                                <th>MYOB Values</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={invoiceData} for:item="item">
+                                <tr key={item.Key}>
+                                    <td>{item.Key}</td>
+                                    <td>{item.Fieldvalue}</td>
+                                    <td>{item.Fieldvalue}</td>
+                                    <td>
+                                        <template if:true={item.hasLineItems}>
+                                            <button class="slds-button slds-button_icon slds-button_icon-border" data-id={item.Key} onclick={toggleSubTable}>
+                                            </button>
+                                        </template>
+                                    </td>
+                                </tr>
+
+                                <!-- Sub-Table (Line Items) -->
+                                <template if:true={item.showLineItems}>
+                                    <tr key={item.Key}>
+                                        <td colspan="4">
+                                            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-m-top_small">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Fields</th>
+                                                        <th>Salesforce Values</th>
+                                                        <th>MYOB Values</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template for:each={item.lineItems} for:item="listItem">
+                                                        <tr key={listItem.Key}>
+                                                            <td>{listItem.Key}</td>
+                                                            <td>{listItem.Fieldvalue}</td>
+                                                            <td>{listItem.Fieldvalue}</td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Modal Footer -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_brand buttonColor" onclick={hideModalBox}>Cancel</button>
+                    <button class="slds-button slds-button_brand buttonColor" onclick={actionInsertContact}>Sync</button>
+                </footer>
+            </div>
+        </div>
+    </template>
+</template>

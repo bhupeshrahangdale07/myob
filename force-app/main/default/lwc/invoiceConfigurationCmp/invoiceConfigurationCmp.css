@@ -1,0 +1,110 @@
+.invoiceConfig .slds-card__header.slds-grid {
+    border-bottom: 3px solid #6602A3;
+    box-shadow: 3px 0px 3px #6602A3;
+    padding: 22px;
+    margin-top: -10px;
+    margin-left: -4px;
+    
+}
+.slds-section-title_divider.slds-m-top_medium.slds-m-bottom_medium{
+    font-size: .75rem;
+    line-height: 1.25;
+    color: black;
+    text-transform: uppercase;
+    letter-spacing: .0625rem;
+    padding: 0.5rem 1rem;
+    background: var(--slds-g-color-neutral-base-95, rgb(243, 243, 243));
+}
+.iconColor{
+    --slds-c-icon-color-foreground-default: #A336F0;
+    /*--slds-c-icon-color-background: gray;*/
+    /*--lwc-colorTextIconDefault: orange;*/
+  }
+.buttonColor{
+    --slds-c-button-brand-color-border : #A336F0;
+    --slds-c-button-brand-color-background-active : #A336F0;
+    --slds-c-button-brand-color-background : #A336F0;
+    --slds-c-button-brand-color-background-hover : #6602A3;
+}
+.buttonIconColor{
+  background-color: #949aa3;
+  border-color: #333;
+  color: #A336F0;
+}
+/* .spinner{
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+} */
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}
+td{
+    /* height: 50px; */
+    padding: 7px;
+}
+th{
+    height: 50px;
+    padding: 7px;
+}
+span.slds-form-element__label.slds-m-bottom_none.toggleLabel {
+    position: absolute;
+    left: 65px;
+}
+.container {
+    position: relative;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: none;
+}
+
+.show {
+    display: block;
+}
+
+ul li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+ul li:hover {
+    background-color: #f0f0f0;
+}
+.objectSelection {
+    display: flex;
+}
+header.slds-modal__header{
+    background-color: #A336F0;
+    color: #fff;
+    font-weight: bold;
+}
+.slds-modal__container {
+    width: 68%;
+    max-width: 52rem;
+}
+td:last-child {
+    width: 60%;
+}
+td:child-child {
+    width: 40%;
+}
+.readonlyClass{
+    --slds-c-icon-color-foreground-default: #009DDC;
+    padding: 0px 4px 0px 0px;
+}
+.noteReadonlyIcon{
+    --slds-c-icon-color-foreground-default: #FF0000;
+}

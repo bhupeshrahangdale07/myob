@@ -1,0 +1,87 @@
+<template>
+    <template lwc:if={showLoading}>
+        <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+    </template>
+    <lightning-card variant="narrow">
+        <div class="slds-m-around_small slds-p-around_small">
+            <abbr title="Payment is" class="slds-required">*</abbr>{labelOne}
+            <lightning-combobox style="width: 75%;"
+                                name="dueDate"
+                                label="Payment is"
+                                value={dueDateValue}
+                                placeholder="Select Item" 
+                                variant="label-hidden"
+                                options={dueDateOptions}
+                                onchange={handleChange}
+                                class="validate"></lightning-combobox>
+            <div class="slds-m-top_small">
+                <template lwc:if={dueDateValue}>
+                    <template lwc:if={isDueOnThisDay}>
+                        <lightning-input style="width: 40%;" 
+                                        type="date" 
+                                        name="isDueOnThisDay" 
+                                        label="Due Date"
+                                        variant="label-hidden" 
+                                        value={dueDateData.invoiceDueDate}
+                                        date-style="short"
+                                        onchange={handleSecondTier} 
+                                        class="validate" 
+                                        required></lightning-input>
+                                        <p>isDueOnThisDay</p>
+                    </template>
+                    <template lwc:elseif={isPrepaid}>
+                        <p>isPrepaid</p>
+                    </template>
+                    <template lwc:elseif={isDueInANumberOfDaysAfterTheIssueDate}>
+                        <lightning-combobox style="width: 25%;"
+                                            name="isDueInANumberOfDaysAfterTheIssueDate"
+                                            label="Payment is"
+                                            value={dueDateValue}
+                                            placeholder="Select Item" 
+                                            variant="label-hidden"
+                                            options={dayOptions}
+                                            onchange={handleSecondTier}
+                                            class="validate"></lightning-combobox>
+                                        <p>isDueInANumberOfDaysAfterTheIssueDate</p>
+
+                    </template>
+                    <template lwc:elseif={isCashOnDelivery}>
+                        <p>isCashOnDelivery</p>
+
+                    </template>
+                    <template lwc:elseif={isDueOnADateOfNextMonth}>
+                        <lightning-input style="width: 40%;" 
+                                        type="date" 
+                                        name="invoiceDueDate" 
+                                        label="Due Date"
+                                        variant="label-hidden" 
+                                        value={dueDateData.invoiceDueDate}
+                                        date-style="short"
+                                        onchange={handleSecondTier} 
+                                        class="validate" 
+                                        required></lightning-input>
+                                        <p>isDueOnADateOfNextMonth</p>
+
+                    </template>
+                    <template lwc:elseif={isDueInANumberOfDaysAfterTheEndOfTheMonth}>
+                        <lightning-input style="width: 40%;" 
+                                        type="date" 
+                                        name="invoiceDueDate" 
+                                        label="Due Date"
+                                        variant="label-hidden" 
+                                        value={dueDateData.invoiceDueDate}
+                                        date-style="short"
+                                        onchange={handleSecondTier} 
+                                        class="validate" 
+                                        required></lightning-input>
+                                        <p>isDueInANumberOfDaysAfterTheEndOfTheMonth</p>
+
+                    </template>
+                </template>
+            </div>
+            <div class="slds-m-top_small">
+                <a onclick={handleSave}>Remember terms for this customer</a>
+            </div>
+        </div>
+    </lightning-card>
+</template>

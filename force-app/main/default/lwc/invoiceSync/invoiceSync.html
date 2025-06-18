@@ -1,0 +1,104 @@
+<template>
+    <template if:true={isShowModal}>
+        <template if:true={showLoading}>
+            <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+        </template>
+        <!-- Modal Header Start -->
+        <header class="slds-modal__header">
+            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeQuickAction}>
+                <lightning-icon icon-name="utility:close"
+                                alternative-text="close"
+                                variant="inverse"
+                                size="small" ></lightning-icon>
+                <span class="slds-assistive-text">Close</span>
+            </button>
+            <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Invoice Sync in MYOB</h2>
+        </header>
+        <!-- Modal Header End -->
+        <!-- Modal Body Start -->
+        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+            <p class="slds-p-bottom_small" style="font-size: 14px;">Please review the data once before proceeding further.</p>
+            <table class="parentTable">
+                <thead>
+                    <tr>
+                        <th>Fields</th>
+                        <th>Salesforce Values</th>
+                        <th>MYOB Values</th>
+                        <th>Sync to</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={invoiceData} for:item="item" for:index="index">
+                        <tr key={item.Key} class={item.className}>
+                                <template if:true={item.hasLineItems}>
+                                    <td>
+                                        {item.Key}
+                                    </td>                                    
+                                    <td colspan="3"><h1 class="slds-text-link" data-id={item.Key} onclick={toggleSubTable}>Click to Expand
+                                    </h1></td>
+                                </template>
+                                <template if:false={item.hasLineItems}>
+                                    <td>{item.Key}</td>
+                                    <td>{item.SfFieldvalue}</td>
+                                    <td>{item.MYOBFieldvalue}</td>
+                                    <td><lightning-input type="toggle" message-toggle-active="Salesforce" message-toggle-inactive="MYOB" checked={item.DoSyncToSf} disabled={item.DoSyncToSf} onchange={syncInvoiceFieldHandler} data-invoicefield={item.Key}></lightning-input></td>
+                                </template>
+                        </tr>
+                        
+                       <!-- Sub-Table (Line Items) -->
+                       <template if:true={item.showLineItems}>
+                        <tr key={item.Key}>
+                            <td colspan="4">
+                                <template for:each={item.Fieldvalue} for:item="InvItem">
+                                    
+                                        <div  key={InvItem.Key}><h1 class="lineItemsHeader">{InvItem.Key} data</h1></div>
+                                        <!-- <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-m-top_small"  key={InvItem.Key}> -->
+                                        <table class="childTable" key={InvItem.Key}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Fields</th>
+                                                    <th>Salesforce Values</th>
+                                                    <th>MYOB Values</th>
+                                                    <th>Sync to</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template if:true={InvItem.lineItemNull}>
+                                                    <tr>
+                                                        <td colspan="4">No Line Items Found in MYOB</td>
+                                                    </tr>
+                                                </template>
+                                                <template if:false={InvItem.lineItemNull}>
+                                                    <template for:each={InvItem.Fieldvalue} for:item="lineItem">
+                                                        <tr key={lineItem.Key} class={lineItem.className}>
+                                                            <td>{lineItem.Key}</td>
+                                                            <td>{lineItem.SfFieldvalue}</td>
+                                                            <td>{lineItem.MYOBFieldvalue}</td>
+                                                            <td><lightning-input type="toggle" message-toggle-active="Salesforce" message-toggle-inactive="MYOB" checked={lineItem.DoSyncToSf} disabled={lineItem.DoSyncToSf} onchange={syncLineItemFieldHandler} data-lineitemfield={lineItem.Key} data-lineitem={InvItem.Key}></lightning-input></td>
+                                                        </tr>
+                                                    </template>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+
+                        <!-- End of the subtable. -->
+
+
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <!-- Modal Body End -->
+        <!-- Modal Footer Start -->
+         <footer class="slds-modal__footer">
+            <button class="slds-button slds-button_brand buttonColor" onclick={closeQuickAction}>Cancel</button>
+            <button class="slds-button slds-button_brand buttonColor" name="Sync" onclick={upsertInvoiceHandler}>Sync</button>
+            <button class="slds-button slds-button_brand buttonColor" name="Proceed" onclick={upsertInvoiceHandler}>Proceed</button>
+        </footer>
+        <!-- Modal Footer End -->
+    </template>
+</template>

@@ -1,0 +1,64 @@
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}
+/*.cardHeading{
+    font-size: 20px;
+    font-weight: 600;
+    color: #6602A3;
+    background-color: #80808033;
+    padding: 18px;
+    text-align: center;
+}*/
+.rowSection {
+    display: flex;
+    width: 100%;
+}
+.buttonColor{
+    --slds-c-button-brand-color-border : #A336F0;
+    --slds-c-button-brand-color-background-active : #A336F0;
+    --slds-c-button-brand-color-background : #A336F0;
+    --slds-c-button-brand-color-background-hover : #6602A3;
+}
+.slds-modal__footer button.slds-button, p button.slds-button{
+    background-color: #A336F0;
+    margin: 5px;
+    color: #fff;
+}
+header.slds-modal__header {
+    background-color: #A336F0;
+    color: #fff;
+    font-weight: 600;
+}
+footer.slds-modal__footer {
+    text-align: center;
+}
+.radioInput{
+    --slds-c-radio-mark-color-foreground: #ffffff;
+    --slds-c-radio-color-background-checked: #A336F0;
+    --slds-c-radio-color-border: black;
+    --slds-c-radio-color-border-checked: #6602A3;
+}
+.customerForm{
+    text-align: left !important;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 0px 0px 13px;
+}
+.buttonIcon1{
+    margin-top: 8px;
+    margin-left: 430px;
+}
+/* .buttonIcon1{
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 16px;
+    margin-top: 8px;
+} */
+.buttonIcon2{
+    margin-top: 8px;
+    margin-left: 450px;
+}
+.buttonIcon3{
+    margin-top: 8px;
+    margin-left: 508px;
+}

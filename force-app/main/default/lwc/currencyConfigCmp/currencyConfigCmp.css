@@ -1,0 +1,51 @@
+.currencyConfig .slds-card__header.slds-grid {
+    border-bottom: 3px solid #6602A3;
+    box-shadow: 3px 0px 3px #6602A3;
+    padding: 18px;
+    margin-top: -10px;
+    margin-left: -4px;
+    
+}
+.slds-section-title_divider.slds-m-top_medium.slds-m-bottom_medium{
+    font-size: .75rem;
+    line-height: 1.25;
+    color: black;
+    text-transform: uppercase;
+    letter-spacing: .0625rem;
+    padding: 0.5rem 1rem;
+    background: var(--slds-g-color-neutral-base-95, rgb(243, 243, 243));
+}
+.iconColor{
+    --slds-c-icon-color-foreground-default: #A336F0;
+    /*--slds-c-icon-color-background: gray;*/
+    /*--lwc-colorTextIconDefault: orange;*/
+}
+.buttonColor{
+    --slds-c-button-brand-color-border : #A336F0;
+    --slds-c-button-brand-color-background-active : #A336F0;
+    --slds-c-button-brand-color-background : #A336F0;
+    --slds-c-button-brand-color-background-hover : #6602A3;
+}
+.buttonIconColor{
+    -slds-c-button-icon-brand-color-border : #A336F0;
+    --slds-c-button-icon-brand-color-background-active : #A336F0;
+    --slds-c-button-icon-brand-color-background : #A336F0;
+    --slds-c-button-icon-brand-color-background-hover : #6602A3;
+}
+td{
+    padding: 7px;
+}
+
+th{
+    padding: 12px;
+    background-color: lightgray;
+}
+.stepTitle{
+    font-size: x-large;
+}
+.actionColumn{
+    width: 10%;
+}
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}

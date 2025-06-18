@@ -1,0 +1,2 @@
+<apex:page standardController="MYOB_Credential__c" extensions="MYOB_Authorization_cls" action="{!fetchAccessToken}">
+</apex:page>

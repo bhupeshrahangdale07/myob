@@ -1,0 +1,447 @@
+<template>
+    <!-- <lightning-card variant="narrow" class="customCard"> -->
+        <template if:true={isShowModal}>
+            <!-- <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open"> -->
+                <!-- <div class="slds-modal__container"> -->
+                    <template if:true={showLoading}>
+                        <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
+                    </template>
+                    <!-- Modal Header Start -->
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
+                            <lightning-icon icon-name="utility:close"
+                                            alternative-text="close"
+                                            variant="inverse"
+                                            size="small" ></lightning-icon>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Create Customer in MYOB</h2>
+                    </header>
+                    <!-- Modal Header End -->
+                    <!-- Modal Body Start -->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <div class="rowSection">
+                            <div class="slds-col slds-size_7-of-12">
+                                <lightning-radio-group type="radio"
+                                                        name="customerType"
+                                                        value={customerRecord.customerType}
+                                                        label="Entity Type :"
+                                                        variant="label-inline"
+                                                        options={customerTypeOption}
+                                                        onchange={updateCustomerValues}
+                                                        disabled={disableCustomerType}
+                                                        class ="radioInput slds-var-m-left_small"></lightning-radio-group>
+                            </div>
+                        </div>
+                        <br>
+                        <template if:false={isIndividual}>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    <lightning-input name="CompanyName" 
+                                                    value={customerRecord.CompanyName} 
+                                                    label="Company Name" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    required></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <template if:true={isIndividual}>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    <lightning-input name="FirstName" 
+                                                    value={customerRecord.FirstName} 
+                                                    label="First Name" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    <lightning-input name="LastName" 
+                                                    value={customerRecord.LastName} 
+                                                    label="Surname or Family Name" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    required></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <!--ABN & Contact Id Section-->
+                        <div class="rowSection">
+                            <p class="customerForm">ABN & Contact Id</p>
+                            <div class="buttonIcon1">
+                                <lightning-button-icon icon-name={xIconName}  
+                                                    variant="bare" 
+                                                    alternative-text="toggle" 
+                                                    title="toggleDetails" 
+                                                    data-id="abnnContactId" 
+                                                    onclick={changeView}></lightning-button-icon>
+                            </div>
+                        </div>
+                        <template if:true={showABNnContactId}>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelOne}
+                                    <lightning-input name="abn" 
+                                                    value={customerRecord.abn} 
+                                                    label="ABN" 
+                                                    variant="label-hidden"
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelTwo}<lightning-helptext content="Enter a reference or account Id for this contact"></lightning-helptext>
+                                    <lightning-input name="contactId" 
+                                                    value={customerRecord.contactId} 
+                                                    label="Contact Id"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <!--Billing Address Section-->
+                        <div class="rowSection">
+                            <p class="customerForm">Billing Address</p>
+                            <div class="buttonIcon2">
+                                <lightning-button-icon icon-name={xIconName}  
+                                                    variant="bare" 
+                                                    alternative-text="toggle" 
+                                                    title="toggleDetails" 
+                                                    data-id="billingAddrId" 
+                                                    onclick={changeView}></lightning-button-icon>
+                            </div>
+                        </div>
+                        <template if:true={showBillingAddr}>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelThree}
+                                    <lightning-combobox name="BillAddrCountry" 
+                                                        value={customerRecord.BillAddrCountry} 
+                                                        label="Country" 
+                                                        placeholder="Select Country"
+                                                        options={billingCountryOption} 
+                                                        onchange={updateCustomerValues} 
+                                                        variant="label-hidden"></lightning-combobox>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelFour}
+                                    <lightning-input name="BillAddrStreet" 
+                                                    value={customerRecord.BillAddrStreet} 
+                                                    label="Address"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelFive}
+                                    <lightning-input name="BillAddrCity" 
+                                                    value={customerRecord.BillAddrCity} 
+                                                    label="Suburb/town/locality"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelSix}
+                                    <lightning-combobox name="BillAddrState" 
+                                                        value={customerRecord.BillAddrState} 
+                                                        label="Postcode" 
+                                                        placeholder="Select State"
+                                                        options={billingStateOption} 
+                                                        onchange={updateCustomerValues} 
+                                                        variant="label-hidden"></lightning-combobox>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelSeven}
+                                    <lightning-input name="BillAddrPostalCode" 
+                                                    value={customerRecord.BillAddrPostalCode} 
+                                                    label="Postcode"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelEight}
+                                    <lightning-input name="BillAddrContactPerson" 
+                                                    value={customerRecord.BillAddrContactPerson} 
+                                                    label="Contact person"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelNine}
+                                    <lightning-input name="BillAddrToEmail" 
+                                                    value={customerRecord.BillAddrToEmail} 
+                                                    label="To Email"
+                                                    placeholder="Type and press Enter"
+                                                    pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
+                                                    variant="label-hidden" 
+                                                    type="email" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelTen}
+                                    <lightning-input name="BillAddrFax" 
+                                                    value={customerRecord.BillAddrFax} 
+                                                    label="Fax"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelEleven}
+                                    <lightning-input name="BillAddrPhone" 
+                                                    value={customerRecord.BillAddrPhone} 
+                                                    label="Phone"
+                                                    variant="label-hidden" 
+                                                    type="number" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelTwelve}
+                                    <lightning-input name="BillAddrWebsite" 
+                                                    value={customerRecord.BillAddrWebsite} 
+                                                    label="Website"
+                                                    variant="label-hidden" 
+                                                    type="url" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <!--Shipping Address Section-->
+                        <div class="rowSection">
+                            <p class="customerForm">Shipping Address</p>
+                            <div class="buttonIcon1">
+                                <lightning-button-icon icon-name={xIconName}  
+                                                    variant="bare" 
+                                                    alternative-text="toggle" 
+                                                    title="toggleDetails" 
+                                                    data-id="shippingAddrId" 
+                                                    onclick={changeView}></lightning-button-icon>
+                            </div>
+                        </div>
+                        <template if:true={showShippingAddr}>
+                            <div class="rowSection">
+                                <div class="slds-var-m-top_medium slds-var-m-bottom_small slds-var-m-left_small">
+                                    <label class="slds-checkbox_toggle slds-grid">
+                                        <input type="checkbox" 
+                                                name="shippingSameAsBilling" 
+                                                checked={shippingSameAsBilling}
+                                                onchange={shippingSameAsBillingHandler} />
+                                        <span class="slds-checkbox_faux_container" aria-live="assertive">
+                                            <span class="slds-checkbox_faux"></span>
+                                        </span>
+                                        <span class="slds-form-element__label slds-m-bottom_none slds-var-m-left_small">{labelThirteen}</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelThree}
+                                    <lightning-combobox name="ShipAddrCountry" 
+                                                        label="Country" 
+                                                        value={customerRecord.ShipAddrCountry} 
+                                                        placeholder="Select Country"
+                                                        options={shippingCountryOption} 
+                                                        onchange={updateCustomerValues} 
+                                                        variant="label-hidden"
+                                                        disabled={disableShippingAddr}></lightning-combobox>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelFour}
+                                    <lightning-input name="ShipAddrStreet" 
+                                                    value={customerRecord.ShipAddrStreet} 
+                                                    label="Address"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelFive}
+                                    <lightning-input name="ShipAddrCity" 
+                                                    value={customerRecord.ShipAddrCity} 
+                                                    label="Suburb/town/locality"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelSix}
+                                    <lightning-combobox name="ShipAddrState" 
+                                                        label="Postcode" 
+                                                        value={customerRecord.ShipAddrState} 
+                                                        placeholder="Select State"
+                                                        options={shippingStateOption} 
+                                                        onchange={updateCustomerValues} 
+                                                        variant="label-hidden"
+                                                        disabled={disableShippingAddr}></lightning-combobox>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelSeven}
+                                    <lightning-input name="ShipAddrPostalCode" 
+                                                    value={customerRecord.ShipAddrPostalCode} 
+                                                    label="Postcode"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelEight}
+                                    <lightning-input name="ShipAddrContactPerson" 
+                                                    value={customerRecord.ShipAddrContactPerson} 
+                                                    label="Contact person"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelNine}
+                                    <lightning-input name="ShipAddrToEmail" 
+                                                    value={customerRecord.ShipAddrToEmail} 
+                                                    label="To Email"
+                                                    placeholder="Type and press Enter"
+                                                    pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
+                                                    variant="label-hidden" 
+                                                    type="email" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelTen}
+                                    <lightning-input name="ShipAddrFax" 
+                                                    value={customerRecord.ShipAddrFax} 
+                                                    label="Fax"
+                                                    variant="label-hidden" 
+                                                    type="text" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                            </div>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelEleven}
+                                    <lightning-input name="ShipAddrPhone" 
+                                                    value={customerRecord.ShipAddrPhone} 
+                                                    label="Phone"
+                                                    variant="label-hidden" 
+                                                    type="number" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    {labelTwelve}
+                                    <lightning-input name="ShipAddrWebsite" 
+                                                    value={customerRecord.ShipAddrWebsite} 
+                                                    label="Website"
+                                                    variant="label-hidden" 
+                                                    type="url" 
+                                                    step="any"
+                                                    onchange={updateCustomerValues}
+                                                    class="newCustomerValidate"
+                                                    disabled={disableShippingAddr}></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <!--Notes Section-->
+                        <div class="rowSection">
+                            <p class="customerForm">Notes</p>
+                            <div class="buttonIcon3">
+                                <lightning-button-icon icon-name={xIconName}  
+                                                    variant="bare" 
+                                                    alternative-text="toggle" 
+                                                    title="toggleDetails" 
+                                                    data-id="notesId" 
+                                                    onclick={changeView}
+                                                    disabled={disableShippingAddr}></lightning-button-icon>
+                            </div>
+                        </div>
+                        <template if:true={showNotes}>
+                            <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_12-of-12 slds-m-bottom--small">
+                                    {labelFourteen}
+                                    <lightning-input-rich-text name="Notes" 
+                                                            label=""
+                                                            placeholder="Notes to Customer"
+                                                            value={customerRecord.Notes}
+                                                            onchange={noteshandler}
+                                                            disabled={disableShippingAddr}></lightning-input-rich-text>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <!-- Modal Body End -->
+                    <!-- Modal Footer Start -->
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_brand buttonColor" onclick={hideModalBox}>Cancel</button>
+                        <button class="slds-button slds-button_brand buttonColor" onclick={updateUserInputValues}>Save</button>
+                    </footer>
+                    <!-- Modal Footer End -->
+                <!-- </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div> -->
+        </template>
+    <!-- </lightning-card> -->
+</template>

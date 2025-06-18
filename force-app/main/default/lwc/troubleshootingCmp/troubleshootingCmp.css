@@ -1,0 +1,40 @@
+.troubleshooting_cmp .slds-card__header.slds-grid {
+    border-bottom: 3px solid #6602A3;
+    box-shadow: 3px 0px 3px #6602A3;
+    padding: 22px;
+    margin-top: -10px;
+    margin-left: -4px;
+    
+  }
+.iconColor{
+    --slds-c-icon-color-foreground-default: #A336F0;
+    /*--slds-c-icon-color-background: gray;*/
+    /*--lwc-colorTextIconDefault: orange;*/
+  }
+/* .spinner{
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+} */
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}
+/* Create three equal columns that floats next to each other */
+.column {
+    float: left;
+    padding: 10px;
+    font-size: medium;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.Note{
+    background: blanchedalmond;
+    border-radius: 5px;
+}
