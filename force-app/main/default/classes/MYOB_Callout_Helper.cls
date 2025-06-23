@@ -132,11 +132,7 @@ public without sharing class MYOB_Callout_Helper {
                     apiDetails.status =  res.getStatus();
                     apiDetails.statusCode =   res.getStatusCode();
                     apiDetails.errorMsg = model.isCalloutException == true ? 'Failed':'Success';
-                    if(apiDetails.dolog == true){
-                        system.debug('### apiDetails : '+apiDetails);
-                        system.debug('### Do Log : '+apiDetails.dolog);
-                        creatMYOBLog(apiDetails);
-                    }
+                    creatMYOBLog(apiDetails);
                 }   
             }
         }
@@ -151,7 +147,7 @@ public without sharing class MYOB_Callout_Helper {
 // Creating MYOB Logs method
     //Callout Log
     public static void creatMYOBLog(CalloutDetails cred){
-        String charLimitUp = '...more data ahead,cannot be displayed due to salesforce field limit.';//69 chars : do not add more chars or letter,limit will exceed and can cause error.
+        String charLimitUp = '...more data ahead,cannot be displayed due to salesforce field limit or heap size limit.';//69 chars : do not add more chars or letter,limit will exceed and can cause error.
         try{
             KTMYOB__MYOB_Log__c exc = new KTMYOB__MYOB_Log__c();
             exc.KTMYOB__Callout_Log__c = true;
@@ -170,10 +166,14 @@ public without sharing class MYOB_Callout_Helper {
             exc.KTMYOB__Record_Id__c = cred.recordId;
             
             // HttpResponse response info
-            if(cred.responsebody.getChars().size() <= 131072){
-                exc.KTMYOB__Response__c =  cred.responsebody;
+            if(cred.dolog == true){
+                if(cred.responsebody.getChars().size() <= 131072 ){
+                    exc.KTMYOB__Response__c =  cred.responsebody;
+                }else{
+                    exc.KTMYOB__Response__c =  cred.responsebody.left(131000)+charLimitUp;
+                }
             }else{
-                exc.KTMYOB__Response__c =  cred.responsebody.left(131000)+charLimitUp;
+                exc.KTMYOB__Response__c =charLimitUp;
             }
             exc.KTMYOB__Status_Code__c = String.valueOf(cred.statusCode);
             exc.KTMYOB__Status__c =  cred.status;

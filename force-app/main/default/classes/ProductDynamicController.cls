@@ -235,7 +235,7 @@ public with sharing class ProductDynamicController {
                         if(lstProductsSynced.size()<2){
                             Database.upsert(lstProductsSynced,productExternalID,true);
                             upsertStatus = 'success';
-                        }else if(lstProductsSynced.size()<50000){
+                        }else if(lstProductsSynced.size()<50000){ //APP LIMIT : we can only sync upto 50,000 record
                             System.debug('### lstProductsSynced multiple prods count ::: '+lstProductsSynced.size());
                             Database.executeBatch(new Batch_DMLSobjects(lstProductsSynced,'upsert',productExternalID),2000);
                             upsertStatus = 'async-success';

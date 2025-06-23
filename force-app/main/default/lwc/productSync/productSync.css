@@ -4,3 +4,7 @@
     --slds-c-button-brand-color-background : #A336F0;
     --slds-c-button-brand-color-background-hover : #6602A3;
 }
+
+.spinnerIcon{
+    --lwc-brandPrimary: #6602A3;
+}

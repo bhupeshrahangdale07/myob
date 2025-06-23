@@ -1,45 +1,40 @@
 <template>
-    <div class="container">
-        <lightning-layout vertical-align="center" class="x-large">
-            <lightning-layout-item flexibility="auto" padding="around-small">
-             
-                <div class="custom-box">
-                    <!-- Dropdown -->
-        <lightning-combobox 
-        label="Select Item Type"
-        value={selectedValue}
-        options={options}
-        onchange={handleDropdownChange}>
-    </lightning-combobox></div>
-            </lightning-layout-item>
-            
-            <lightning-layout-item flexibility="auto" padding="around-small">
-                <!-- Checkbox -->
-                <div class="custom-box">
-                    <lightning-input type="checkbox" label="Active" onchange={handleCheckboxChange}></lightning-input></div>
-            </lightning-layout-item>
-        
-            
-        
-         
-    </lightning-layout>
-    <div>
-        <!-- Button -->
-        <lightning-button label="Sync to Salesforce" onclick={handleSync} variant="brand" class="slds-var-m-around_large buttonColor"></lightning-button>
-    </div>
+    <template if:true={showLoading}>
+        <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand"
+            size="medium"></lightning-spinner>
+    </template>
+    <template if:true={showAllFilter}>
+        <div class="container">
+            <lightning-layout vertical-align="center" class="x-large">
+                <lightning-layout-item flexibility="auto" padding="around-small">
+
+                    <div class="custom-box">
+                        <!-- Dropdown -->
+                        <lightning-combobox label="Select Item Type" value={selectedValue} options={options}
+                            onchange={handleDropdownChange}>
+                        </lightning-combobox>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item flexibility="auto" padding="around-small">
+                    <!-- Checkbox -->
+                    <div class="custom-box">
+                        <lightning-input type="checkbox" label="Active"
+                            onchange={handleCheckboxChange}></lightning-input>
+                    </div>
+                </lightning-layout-item>
+            </lightning-layout>
+            <div>
+                <lightning-button label="Sync to Salesforce" onclick={handleSync} variant="brand"
+                    class="slds-var-m-around_large buttonColor"></lightning-button>
+            </div>
+        </div>
+    </template>
     <template if:true={showModal}>
-        <div>
-     <c-confirmation-modal-popup title={title}
-                                            body={body}
-                                            show-positive={showPositiveButton}
-                                            positive-button-label={positiveButtonLabel}
-                                            show-negative={showNegativeButton}
-                                            negative-button-label={negativeButtonLabel}
-                                            onpositive={confirmSync}
-                                            onnegative={closeModal}>
-     </c-confirmation-modal-popup>
-    </div>
-</template>
-    </div>
+        <c-confirmation-modal-popup title={title} body={body} show-positive={showPositiveButton}
+            positive-button-label={positiveButtonLabel} show-negative={showNegativeButton}
+            negative-button-label={negativeButtonLabel} onpositive={confirmSync} onnegative={closeModal}>
+        </c-confirmation-modal-popup>
+    </template>
 
 </template>
