@@ -301,12 +301,14 @@ public without sharing class MYOB_Callout_Helper {
         @AuraEnabled public string message;
         @AuraEnabled public string multipleMessage;
         @AuraEnabled public boolean isConnectionError;
+        @AuraEnabled public List<Object> lstData;
 
         public ComponentResponse(){
             status= '';
             message= '';
             multipleMessage=''; //Add the error in JSON Format to add multiple messages.
             isConnectionError=false;
+            lstData = new List<Object>();
         }
     }
 

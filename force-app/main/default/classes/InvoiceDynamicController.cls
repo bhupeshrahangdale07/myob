@@ -771,11 +771,7 @@ public with sharing class InvoiceDynamicController{
                 //3. Callout and Parsing the reponse.
                 MYOB_Callout_Helper.HTTPModel objHTTP = MYOB_Callout_Helper.genericCalloutMethod(calloutWrapper.requestBody,new Map<String,String>(),calloutWrapper);
                 if (!objHTTP.isCalloutException && !objHTTP.isLogException) {
-                    String syncStatus = '';
                     lstInvoicesToSync = MYOB_InvoiceResponse.parse(objHTTP.response,true);
-                    if(String.isBlank(syncStatus) || syncStatus == 'Failed'){
-                        objHTTP.isLogException = true;
-                    }
                 }
             }
         }

@@ -4,6 +4,7 @@
             <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
         </template>
         <!-- Modal Header Start -->
+         <div class="modelContent">
         <header class="slds-modal__header">
             <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeQuickAction}>
                 <lightning-icon icon-name="utility:close"
@@ -99,6 +100,7 @@
             <button class="slds-button slds-button_brand buttonColor" name="Sync" onclick={upsertInvoiceHandler}>Sync</button>
             <button class="slds-button slds-button_brand buttonColor" name="Proceed" onclick={upsertInvoiceHandler}>Proceed</button>
         </footer>
+        </div>
         <!-- Modal Footer End -->
     </template>
 </template>

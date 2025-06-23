@@ -53,3 +53,6 @@ footer.slds-modal__footer {
     --slds-c-button-brand-color-background : #A336F0;
     --slds-c-button-brand-color-background-hover : #6602A3;
 }
+/* div.modal-container.slds-modal__container{
+        max-width: 950px !important;
+} */

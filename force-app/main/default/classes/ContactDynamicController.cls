@@ -9,6 +9,8 @@ public without sharing class ContactDynamicController {
     public static Map<String,KTMYOB__Contact_Company_Fields_Mapping__c> mapMYOBApiNameCompanyData = new Map<String,KTMYOB__Contact_Company_Fields_Mapping__c>();
     public static Map<String,KTMYOB__Contact_Individual_Fields_Mapping__c> mapMYOBApiNameIndividualData = new Map<String,KTMYOB__Contact_Individual_Fields_Mapping__c>();
 
+    public static boolean isIndividualContact = false;
+
     
     public ContactDynamicController(){
         generateObjectFieldMapping();
@@ -53,9 +55,11 @@ public without sharing class ContactDynamicController {
         @param operation - 'CreateOrUpdate'
         @return component response
      */
+    //### Done no changes
     @AuraEnabled
     public static  MYOB_Callout_Helper.ComponentResponse createUpdateContact(String contactId,String objectApiName,Map<String,Object> mapMYOBContactFldNameSfValue,Boolean isIndividual){
         MYOB_Callout_Helper.ComponentResponse cmpRes = new MYOB_Callout_Helper.ComponentResponse();
+        Map<String,Object> mapMYOBFldNameSFValue = new Map<String,Object>();
         try{
             //check if all Authourization steps are completed.
             cmpRes = MYOB_Callout_Helper.checkAuthorizationSteps();
@@ -67,9 +71,14 @@ public without sharing class ContactDynamicController {
             if(String.isNotBlank(contactId)){
                 //1. Main generic method for Create/Update Qb invoices.
                 if(mapMYOBContactFldNameSfValue != null){
-                    calloutWrapper = genericCreateContactBody(mapMYOBContactFldNameSfValue,contactId,isIndividual);
+                    isIndividualContact = isIndividual; //assigining to static variable
+                    mapMYOBFldNameSFValue = mapMYOBContactFldNameSfValue;
                 }else{
-                    calloutWrapper = createCalloutBodyForContact(contactId,objectApiName);
+                    mapMYOBFldNameSFValue = fetchSfContact(contactId,'',objectApiName,true)[0];
+                }
+
+                if(mapMYOBFldNameSFValue.keyset().size()>0){
+                    calloutWrapper = genericCreateContactBody(mapMYOBFldNameSFValue,contactId);
                 }
                 //2. Creating response i.e. handled in Lwc as Toast message.
                 calloutWrapper.recordId = contactId;
@@ -83,7 +92,7 @@ public without sharing class ContactDynamicController {
 
                 //4. Callout to Query the currently created/updated customer from MYOB to Sf
                 if (!objHTTP.isCalloutException && !objHTTP.isLogException && cmpRes.status =='Success') {
-                    cmpRes = syncContactToSf(contactId,'',isIndividual);
+                    cmpRes = syncContactToSf(contactId,'');
                 }
                 
                 //5. Insert Logs
@@ -91,50 +100,30 @@ public without sharing class ContactDynamicController {
                     Insert MYOB_Callout_Helper.myobLogs; 
                 }
             }
-            // try{
-            //     if(fieldMap!=null){
-            //         if(cmpRes.status == 'Success'){
-            //             // Create a new SObject dynamically
-            //             SObject customerSObject;
-            //             if(isIndividual == true && contactIndividualObjectApiName == objectApiName){
-            //                 customerSObject = contactIndividualSObject.clone(false, true, false, false);
-            //             }else if(isIndividual == false && contactIndividualObjectApiName == objectApiName){
-            //                 customerSObject = contactCompanySObject.clone(false, true, false, false);
-            //             }
-
-            //             // Set fields dynamically
-            //             for (String fieldName : fieldMap.keySet()) {
-            //                 customerSObject.put(fieldName, fieldMap.get(fieldName));
-            //             }
-
-            //             // Perform upsert (uses Id if available)
-            //             upsert customerSObject;
-            //         }
-            //     }
-            // }catch(Exception exp){
-            //     HandleCustomException.LogException(exp);
-            //     cmpRes.message = 'The Customer was successfully created in MYOB, but failed in Salesforce.';
-            //     return cmpRes;
-            // }
             return cmpRes;
         }catch(Exception exp){
             HandleCustomException.LogException(exp);
             return cmpRes;
         }
     }
-   
 
-    public static MYOB_Callout_Helper.CalloutDetails createCalloutBodyForContact(String contactId,String objectApiName){
-        MYOB_Callout_Helper.CalloutDetails calloutWrapper = new MYOB_Callout_Helper.CalloutDetails();
+    //### Done no changes
+    @AuraEnabled
+    public static List<Map<String,Object>> fetchSfContact(String contactId,String searchStr,String objectApiName,Boolean getNonNullInvoiceFields){
+        // Map<String,Object> mapMYOBCompanyFldNameSfValue = new Map<String,Object>();
+        // Map<String,Object> mapMYOBIndividualFldNameSfValue = new Map<String,Object>();
+        List<Map<String,Object>> lstMapMyobContactFldNameSfValue = new List<Map<String,Object>>();
+        Set<String> companyFieldsToQuery = new Set<String>();
+        Set<String> individualFieldsToQuery = new Set<String>();
+        String whereClause= ' WHERE ';
         try{
             generateObjectFieldMapping();
-            Map<String,Object> mapMYOBCompanyFldNameSfValue = new Map<String,Object>();
-            Map<String,Object> mapMYOBIndividualFldNameSfValue = new Map<String,Object>();
-            Set<String> companyFieldsToQuery = new Set<String>();
-            Set<String> individualFieldsToQuery = new Set<String>();
-            Boolean isIndividual = false;
-            String requestBody ='';
-            
+            if(String.isNotBlank(contactId)){
+                whereClause+= 'Id=:contactId';
+            }else if(String.isNotBlank(searchStr)){
+                String partialMatches = '%' + searchStr + '%';
+                whereClause+= 'Name LIKE :partialMatches';
+            }
             //Logic Company Sync
             if(contactCompanyObjectApiName == objectApiName){
                 for(KTMYOB__Contact_Company_Fields_Mapping__c custData : mapMYOBApiNameCompanyData.Values()){
@@ -142,16 +131,24 @@ public without sharing class ContactDynamicController {
                         companyFieldsToQuery.add(custData.KTMYOB__Field_API_Name__c);
                     }
                 }
-                String contactQuery = 'SELECT Id,'+String.escapeSingleQuotes(String.join(companyFieldsToQuery, ','))+' FROM '+String.escapeSingleQuotes(contactCompanyObjectApiName)+' WHERE Id=:contactId LIMIT 1';
-                SObject contactRecordQueried = Database.query(contactQuery); 
-                if(contactRecordQueried != null){
-                    for(String myobFieldApiName : mapMYOBApiNameCompanyData.keyset()){
-                        if(String.isNotBlank(myobFieldApiName)){
-                            if(String.isNotBlank(mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
-                                if((contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c))!= null){
-                                    mapMYOBCompanyFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                String contactQuery = 'SELECT Id,'+String.escapeSingleQuotes(String.join(companyFieldsToQuery, ','))+' FROM '+String.escapeSingleQuotes(contactCompanyObjectApiName)+whereClause;
+                List<SObject> lstcontactRecordQueried = Database.query(contactQuery); 
+                for(Sobject contactRecordQueried:lstcontactRecordQueried){
+                    if(contactRecordQueried != null){
+                        Map<String,Object> mapMYOBContactFldNameSfValue = new Map<String,Object>();
+                        for(String myobFieldApiName : mapMYOBApiNameCompanyData.keyset()){
+                            if(String.isNotBlank(myobFieldApiName)){
+                                if(String.isNotBlank(mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
+                                    if((contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c))!= null && getNonNullInvoiceFields == true){
+                                        mapMYOBContactFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                                    }else if(getNonNullInvoiceFields == false){
+                                        mapMYOBContactFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c)??'');
+                                    }
                                 }
                             }
+                        }
+                        if(mapMYOBContactFldNameSfValue.keySet().size()>0){
+                            lstMapMyobContactFldNameSfValue.add(mapMYOBContactFldNameSfValue);
                         }
                     }
                 }
@@ -159,43 +156,87 @@ public without sharing class ContactDynamicController {
 
             //Logic Individual Sync
             else if(contactIndividualObjectApiName == objectApiName){
-                isIndividual = true;
+                isIndividualContact = true;
                 for(KTMYOB__Contact_Individual_Fields_Mapping__c custData : mapMYOBApiNameIndividualData.Values()){
                     if(String.isNotBlank(custData.KTMYOB__Field_API_Name__c)){
                         individualFieldsToQuery.add(custData.KTMYOB__Field_API_Name__c);
                     }
                 }
-                String contactQuery = 'SELECT Id,'+String.escapeSingleQuotes(String.join(individualFieldsToQuery, ','))+' FROM '+String.escapeSingleQuotes(contactIndividualObjectApiName)+' WHERE Id=:contactId LIMIT 1';
+                String contactQuery = 'SELECT Id,'+String.escapeSingleQuotes(String.join(individualFieldsToQuery, ','))+' FROM '+String.escapeSingleQuotes(contactIndividualObjectApiName)+whereClause;
                 System.debug('### contactQuery ::: '+contactQuery);
-                SObject contactRecordQueried = Database.query(contactQuery); 
-                if(contactRecordQueried != null){
-                    for(String myobFieldApiName : mapMYOBApiNameIndividualData.keyset()){
-                        if(String.isNotBlank(myobFieldApiName)){
-                            if(String.isNotBlank(mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
-                                if((contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c))!= null){
-                                    mapMYOBIndividualFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                List<SObject> lstcontactRecordQueried = Database.query(contactQuery); 
+                for(Sobject contactRecordQueried:lstcontactRecordQueried){
+                    if(contactRecordQueried != null){
+                        Map<String,Object> mapMYOBContactFldNameSfValue = new Map<String,Object>();
+                        for(String myobFieldApiName : mapMYOBApiNameIndividualData.keyset()){
+                            if(String.isNotBlank(myobFieldApiName)){
+                                if(String.isNotBlank(mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
+                                    if((contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c))!= null && getNonNullInvoiceFields == true){
+                                        mapMYOBContactFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                                    }else if(getNonNullInvoiceFields == false){
+                                        mapMYOBContactFldNameSfValue.put( myobFieldApiName,contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c)??'');
+                                    }
                                 }
                             }
+                        }
+                        if(mapMYOBContactFldNameSfValue.keySet().size()>0){
+                            lstMapMyobContactFldNameSfValue.add(mapMYOBContactFldNameSfValue);
                         }
                     }
                 }
             }
-
-            System.debug('### mapMYOBCompanyFldNameSfValue ::: '+mapMYOBCompanyFldNameSfValue);
-            System.debug('### mapMYOBIndividualFldNameSfValue ::: '+mapMYOBIndividualFldNameSfValue);
-            if(mapMYOBCompanyFldNameSfValue.keyset().size()>0){
-                calloutWrapper = genericCreateContactBody(mapMYOBCompanyFldNameSfValue,contactId,isIndividual);
-            }else if(mapMYOBIndividualFldNameSfValue.keyset().size()>0){
-                calloutWrapper = genericCreateContactBody(mapMYOBIndividualFldNameSfValue,contactId,isIndividual);
+            if(lstMapMyobContactFldNameSfValue.size()>0){
+                return lstMapMyobContactFldNameSfValue;
             }
         }catch(Exception exp){
             HandleCustomException.LogException(exp);
         }
-        return calloutWrapper;
+        return new List<Map<String,Object>>();
     }
 
 
-    public static MYOB_Callout_Helper.CalloutDetails genericCreateContactBody(Map<String,Object> mapMYOBContactFldNameSfValue,String contactId,Boolean isIndividual){
+
+    //### Done no changes
+    @AuraEnabled
+    public static string updateContactInSF (Map<string,object> contactMap,String contactId,Boolean isIndividual){
+        string status = '';
+        string objectApiName='';
+        SObject contactObject;
+        try {
+            generateObjectFieldMapping();
+            if(isIndividual == true){
+                contactObject  = contactIndividualSObject.clone(false, true, false, false);
+                contactObject.put('Id',contactId);
+                objectApiName = contactIndividualObjectApiName;
+                for(String fld : contactMap.keyset()){
+                    contactObject.put(mapMYOBApiNameIndividualData.get(fld).KTMYOB__Field_API_Name__c,contactMap.get(fld));
+                }
+            }else{
+                contactObject  = contactCompanySObject.clone(false, true, false, false);
+                objectApiName = contactCompanyObjectApiName;
+                contactObject.put('Id',contactId);
+                for(String fld : contactMap.keyset()){
+                    contactObject.put(mapMYOBApiNameCompanyData.get(fld).KTMYOB__Field_API_Name__c,contactMap.get(fld));
+                }
+            }
+            
+            if(contactObject.get('Id')!= null && String.isNotBlank(objectApiName)){
+                if(Schema.getGlobalDescribe().get(objectApiName).getDescribe(SObjectDescribeOptions.DEFERRED).isUpdateable()){
+                    system.debug('#### contactObject ::: '+contactObject);
+                    Database.update(contactObject);
+                    status='success';
+                }
+            }else if(contactMap.keySet().size() > 0){
+                status='failed';
+            }
+            return status;
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    //### Done no changes
+    public static MYOB_Callout_Helper.CalloutDetails genericCreateContactBody(Map<String,Object> mapMYOBContactFldNameSfValue,String contactId){
         MYOB_Callout_Helper.CalloutDetails calloutWrapper = new MYOB_Callout_Helper.CalloutDetails();
         MYOB_CustomerResponse.cls_Items customerObj= new MYOB_CustomerResponse.cls_Items();
         String contactType = (String) mapMYOBContactFldNameSfValue.get('ContactType');
@@ -213,11 +254,11 @@ public without sharing class ContactDynamicController {
                 calloutWrapper.requestMethod = 'POST';  
                 calloutWrapper.requestEndpoint='/Contact/Customer';
             }
-            customerObj.IsIndividual = isIndividual;
+            customerObj.IsIndividual = isIndividualContact;
 
             //Logic for Customer Type Contact
             if(contactType == 'Customer'){
-                if(isIndividual == true){  
+                if(isIndividualContact == true){  
                     if(String.isNotBlank((String) mapMYOBContactFldNameSfValue.get('FirstName'))){
                         customerObj.FirstName = (String) mapMYOBContactFldNameSfValue.get('FirstName');
                     }
@@ -240,7 +281,7 @@ public without sharing class ContactDynamicController {
         return calloutWrapper;
     }
 
-
+    //###Done no changes
     public static MYOB_CustomerResponse.cls_Items populateGenericFields( MYOB_CustomerResponse.cls_Items customerObj,Map<String,Object> mapMYOBContactFldNameSfValue,String contactId){
 
         //fetching the Tax Code and FrieghtTax Code from MYOB Metadata.
@@ -375,204 +416,50 @@ public without sharing class ContactDynamicController {
         return customerObj;
     }
 
-    // To create customer from UI to SF
-    @AuraEnabled 
-    public static String createCustomerInSF(String objectApiName, String customerData){
-        system.debug('### objectApiName: '+objectApiName);
-        system.debug('### serialize.customerData: '+customerData);
-        
-        String customerId = '';
-        Map<String, Object> customerMap = new Map<String, Object>();
-        try{
-            if(String.isNotBlank(objectApiName) && String.isNotBlank(customerData)) {
-                generateObjectFieldMapping();
-                Map<String,Object> mapMYOBCompanyFldNameSfValue = new Map<String,Object>();
-                Map<String,Object> mapMYOBIndividualFldNameSfValue = new Map<String,Object>();
-                Set<String> companyFields = new Set<String>();
-                Set<String> individualFields = new Set<String>();
-
-                customerMap = (Map<String, Object>) JSON.deserializeUntyped(customerData);
-                system.debug('### deserializeUntyped.customerMap: '+customerMap);
-                system.debug('### customerMap.get(customerType): '+customerMap.get('customerType'));
-
-                SObject newCustomer = Schema.getGlobalDescribe().get(objectApiName).newSObject();
-                Schema.DescribeSObjectResult objDescribe = Schema.getGlobalDescribe().get(objectApiName).getDescribe();
-                Map<String, Schema.SObjectField> fieldMap = objDescribe.fields.getMap();
-                List<String> requiredFields = new List<String>();
-                for (Schema.SObjectField field : fieldMap.values()) {
-                    Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
-                    if (fieldDescribe.isNillable() == false && fieldDescribe.isCreateable()) {
-                        requiredFields.add(fieldDescribe.getName());
-                    }
-                }
-                system.debug('### requiredFields: '+requiredFields);
-                system.debug('### customerMap.keyset: '+customerMap.keyset());
-                
-                if(contactCompanyObjectApiName == objectApiName){
-                    system.debug('### mapMYOBApiNameCompanyData: '+mapMYOBApiNameCompanyData);
-                    system.debug('### mapMYOBApiNameCompanyData.keyset: '+mapMYOBApiNameCompanyData.keyset());
-                    for(KTMYOB__Contact_Company_Fields_Mapping__c custData : mapMYOBApiNameCompanyData.Values()){
-                        if(String.isNotBlank(custData.KTMYOB__Field_API_Name__c)){
-                            companyFields.add(custData.KTMYOB__Field_API_Name__c);
-                        }
-                    }
-                    system.debug('### companyFields: '+companyFields);
-                    for(String myobFieldApiName : mapMYOBApiNameCompanyData.keyset()){
-                        if(String.isNotBlank(myobFieldApiName)){
-                            if(String.isNotBlank(mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
-                                system.debug('### mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c: '+mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c);
-                                if(customerMap.containsKey(myobFieldApiName)){
-                                    newCustomer.put(mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c, customerMap.get(myobFieldApiName));
-                                    system.debug('### newCustomer: '+newCustomer);
-
-                                }
-                            }
-                        }
-                    }
-                } else if(contactIndividualObjectApiName == objectApiName){
-                    system.debug('### mapMYOBApiNameIndividualData: '+mapMYOBApiNameIndividualData);
-                    system.debug('### mapMYOBApiNameIndividualData.keyset: '+mapMYOBApiNameIndividualData.keyset());
-                    for(KTMYOB__Contact_Individual_Fields_Mapping__c custData : mapMYOBApiNameIndividualData.Values()){
-                        if(String.isNotBlank(custData.KTMYOB__Field_API_Name__c)){
-                            individualFields.add(custData.KTMYOB__Field_API_Name__c);
-                        }
-                    }
-                    system.debug('### individualFields: '+individualFields);
-                    for(String myobFieldApiName : mapMYOBApiNameIndividualData.keyset()){
-                        if(String.isNotBlank(myobFieldApiName)){
-                            if(String.isNotBlank(mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)){
-                                system.debug('### mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c: '+mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c);
-                                if(customerMap.containsKey(myobFieldApiName)){
-                                    newCustomer.put(mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c, customerMap.get(myobFieldApiName));
-                                    system.debug('### newCustomer: '+newCustomer);
-
-                                }
-                            }
-                        }
-                    }
-                }
-                for(String requiredField : requiredFields){
-                    if(requiredField == 'OwnerId'){
-                        /* Ignore */
-                    }else if(requiredField == 'KTMYOB__Active__c') {
-                        newCustomer.put(requiredField, true);
-                    }else if(requiredField == 'Name'){
-                        newCustomer.put(requiredField, customerMap.get('companyName'));
-                    }else if(requiredField == 'LastName'){
-                        newCustomer.put(requiredField, customerMap.get('LastName'));
-                    }
-                }
-                system.debug('### Inserting newCustomer');
-                insert newCustomer;
-                customerId = newCustomer.Id;
-            }
-        } catch (Exception e) {
-            HandleCustomException.LogException(e);
-            throw new AuraHandledException('Error creating customer: ' + e.getMessage());
+    //Auramethod : To query single contact record from myob to salesforce.
+    @AuraEnabled
+    public static String fetchSingleContactFromMYOB(String contactMYOBId){
+        generateObjectFieldMapping();
+        MYOB_Callout_Helper.ComponentResponse cmpRes = new MYOB_Callout_Helper.ComponentResponse();
+        List<MYOB_CustomerResponse.cls_Items> lstcontactMYOBObj= new List<MYOB_CustomerResponse.cls_Items>();
+        String response='';
+        //check if all Authourization steps are completed.
+        cmpRes = MYOB_Callout_Helper.checkAuthorizationSteps();
+        if(cmpRes.status.equalsIgnoreCase('Failed')){
+            throw new MYOB_Callout_Helper.MYOBCustomException('MYOB Setup, Authorization/Authentication Connection Steps are pending.');
         }
-        return customerId;
-    }
 
-    public class customSettingMappingApiName{
-        @AuraEnabled
-        public List<KTMYOB__Contact_Company_Fields_Mapping__c> contactCompanyFieldsMapping;
-        @AuraEnabled
-        public List<KTMYOB__Contact_Individual_Fields_Mapping__c> contactIndividualFieldsMapping;
-        @AuraEnabled
-        public List<KTMYOB__Invoice_Fields_Mapping__c> invoiceFieldsMapping;
-        @AuraEnabled
-        public SObject recordData;
-    }
+        if(String.isNotBlank(contactMYOBId)){ 
+            //1. Preparing for Callout
+            MYOB_Callout_Helper.CalloutDetails calloutWrapper = new MYOB_Callout_Helper.CalloutDetails();
+            calloutWrapper.helper = 'ContactDynamicController.fetchSingleContactFromMYOB()';
+            calloutWrapper.requestMethod = 'GET';  
+            calloutWrapper.requestBody='';
+            calloutWrapper.requestEndpoint='/Contact/Customer/'+contactMYOBId;
 
-    /**
-     * @description Customer Sync Component : For getting field list for specifc cs.
-     * @param type, sObject, recordId
-     * @return customSettingMappingApiName
-     */
-    @AuraEnabled 
-    public static customSettingMappingApiName getCustomerFieldsFromCSDetails(String type, String objectApiName, String recordId){
-        customSettingMappingApiName csWrapper = new customSettingMappingApiName();
-        Set<String> fieldApiNames = new Set<String>();
-        system.debug('### type: '+type);
-        system.debug('### objectApiName: '+objectApiName);
-        system.debug('### recordId: '+recordId);
-        try{
-            if(type != null && type !='' && objectApiName != null && objectApiName != '' && recordId != null && recordId != ''){
-                if(type == 'Company'){
-                    csWrapper.contactCompanyFieldsMapping = [ SELECT KTMYOB__Sequence_Number__c, KTMYOB__Data_Type__c, KTMYOB__Field_Value__c, KTMYOB__Field_API_Name__c, KTMYOB__MYOB_Field_Api_Name__c
-                                                              FROM KTMYOB__Contact_Company_Fields_Mapping__c
-                                                              WHERE KTMYOB__Read_Only__c = false 
-                                                              ORDER BY KTMYOB__Sequence_Number__c ASC ];
-
-                    for(KTMYOB__Contact_Company_Fields_Mapping__c mapping : csWrapper.contactCompanyFieldsMapping) {
-                        if(String.isNotBlank(mapping.KTMYOB__Field_API_Name__c)){
-                            fieldApiNames.add(mapping.KTMYOB__Field_API_Name__c);
-                        }
-                    }
-                    system.debug('### fieldApiNames: '+fieldApiNames);
-                    csWrapper.recordData = getrecordDetails(fieldApiNames, objectApiName, recordId);
-                }else if(type == 'Individual'){
-                    csWrapper.contactIndividualFieldsMapping = [ SELECT KTMYOB__Sequence_Number__c, KTMYOB__Data_Type__c, KTMYOB__Field_Value__c, KTMYOB__Field_API_Name__c, KTMYOB__MYOB_Field_Api_Name__c
-                                                                 FROM KTMYOB__Contact_Individual_Fields_Mapping__c
-                                                                 WHERE KTMYOB__Read_Only__c = false 
-                                                                 ORDER BY KTMYOB__Sequence_Number__c ASC ];
-
-                    for(KTMYOB__Contact_Individual_Fields_Mapping__c mapping : csWrapper.contactIndividualFieldsMapping) {
-                        if(String.isNotBlank(mapping.KTMYOB__Field_API_Name__c)){
-                            fieldApiNames.add(mapping.KTMYOB__Field_API_Name__c);
-                        }
-                    }
-                    system.debug('### fieldApiNames: '+fieldApiNames);
-                    csWrapper.recordData = getrecordDetails(fieldApiNames, objectApiName, recordId);
-                }else if(type == 'Invoice'){
-                    csWrapper.invoiceFieldsMapping = [ SELECT KTMYOB__Sequence_Number__c, KTMYOB__Data_Type__c, KTMYOB__Field_Value__c, KTMYOB__Field_API_Name__c, KTMYOB__MYOB_Field_Api_Name__c
-                                                       FROM KTMYOB__Invoice_Fields_Mapping__c
-                                                       WHERE KTMYOB__Read_Only__c = false 
-                                                       ORDER BY KTMYOB__Sequence_Number__c ASC ];
-
-                    for(KTMYOB__Invoice_Fields_Mapping__c mapping : csWrapper.invoiceFieldsMapping) {
-                        if(String.isNotBlank(mapping.KTMYOB__Field_API_Name__c)){
-                            fieldApiNames.add(mapping.KTMYOB__Field_API_Name__c);
-                        }
-                    }
-                    system.debug('### fieldApiNames: '+fieldApiNames);
-                    csWrapper.recordData = getrecordDetails(fieldApiNames, objectApiName, recordId);
+            //2. Generic method for Syncing MYOB Products to Salesforce.
+            if(String.isNotBlank(calloutWrapper.requestEndpoint)){
+                MYOB_Callout_Helper.HTTPModel objHTTP = MYOB_Callout_Helper.genericCalloutMethod(calloutWrapper.requestBody,new Map<String,String>(),calloutWrapper);
+                if (!objHTTP.isCalloutException && !objHTTP.isLogException) {
+                    lstcontactMYOBObj.add(MYOB_CustomerResponse.parseContact(objHTTP.response));
                 }
             }
-        }catch (Exception e) {
-            system.debug('### Error in getCustomerFieldsFromCSDetails');
-            HandleCustomException.LogException(e);
-        }
-        system.debug('### csWrapper: '+csWrapper);
-        return csWrapper;
-    }
 
-     /**
-     * @description Customer Sync Component : For getting field list for specifc cs.
-     * @param objectApiName, recordId
-     * @return customSettingMappingApiName
-     * review Mangesh 
-     */
-    public static SObject getrecordDetails(Set<String> fieldApiNames, String objectApiName, String recordId) {
-        String query = '';
-        try{
-            if(fieldApiNames != null || !fieldApiNames.isEmpty() || !String.isEmpty(objectApiName) || !String.isEmpty(recordId)){
-
-                String fieldList = String.join(new List<String>(fieldApiNames), ',');
-                query = 'SELECT ' + fieldList + ' FROM ' + objectApiName + ' WHERE Id = :recordId';
+            //3. Insert Logs
+            if(Schema.sObjectType.KTMYOB__MYOB_Log__c.isCreateable()){
+                System.debug(' ### MYOB_Callout_Helper.myobLogs ::: '+MYOB_Callout_Helper.myobLogs);
+                Insert MYOB_Callout_Helper.myobLogs; 
             }
-        } catch (Exception e) {
-            System.debug('### Error in getrecordDetails: ' + e.getMessage());
-            HandleCustomException.LogException(e);
+            if(lstcontactMYOBObj.size()>0){
+                response =  JSON.serializePretty(lstcontactMYOBObj[0]);
+            }
         }
-        return Database.query(query);
+        return response;
     }
 
-
-
-    //Mangesh Codes below
-
-    public static MYOB_Callout_Helper.ComponentResponse syncContactToSf(String contactId,String contactMYOBId,Boolean isIndividual){
+    //Helper Method : To upsert synced contact to Salesforce.This method is called from createUpdateContact().
+    //### Done no changes
+    public static MYOB_Callout_Helper.ComponentResponse syncContactToSf(String contactId,String contactMYOBId){
         generateObjectFieldMapping();
         MYOB_Callout_Helper.ComponentResponse cmpRes = new MYOB_Callout_Helper.ComponentResponse();
         try{
@@ -612,7 +499,7 @@ public without sharing class ContactDynamicController {
                     }
 
                     if(lstcontactMYOBObj.size()>0){
-                        syncStatus = upsertCustomer(lstcontactMYOBObj,contactId,isIndividual);
+                        syncStatus = upsertCustomer(lstcontactMYOBObj,contactId);
                     }
 
                     if(String.isBlank(syncStatus) || syncStatus == 'Failed'){
@@ -632,8 +519,9 @@ public without sharing class ContactDynamicController {
     }
 
 
-    //Helper Method : To Upsert customer in Salesforce.
-    public static string upsertCustomer(List<MYOB_CustomerResponse.cls_Items> lstcontactMYOBObj,String contactId,Boolean isIndividual){
+    //Helper Method : To Upsert customer in Salesforce. : This method is called from syncContactToSf().
+    //### Done no changes
+    public static string upsertCustomer(List<MYOB_CustomerResponse.cls_Items> lstcontactMYOBObj,String contactId){
         String upsertStatus = '';
         try{
             //1. Iterating to get the related object details.
@@ -658,10 +546,10 @@ public without sharing class ContactDynamicController {
                 
                 //Making isIndiviual to false if Contact Saved in same object
                 if(contactSavedInDiffOBj == false){
-                    isIndividual = contactSavedInDiffOBj;
+                    isIndividualContact = contactSavedInDiffOBj;
                 }
 
-                if(isIndividual==true){
+                if(isIndividualContact==true){
                     //Saving the MYOB values to Salesforce Fields for Individual Customer.
 
                     objectApiName = contactIndividualObjectApiName;

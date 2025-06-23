@@ -7,19 +7,8 @@
         <target>lightning__RecordPage</target>
         <target>lightning__RecordAction</target>
     </targets>
-    <!-- <targetConfigs>
-        <targetConfig targets="lightning__RecordPage">
-            <property name="objectApiName"
-                    type="String"
-                    label="Object Name"
-                    description="Automatically bind the page's object name to the component variable"
-                    default="{!objectApiName}" />
-        </targetConfig>
-    </targetConfigs> -->
-
     <targetConfigs>
     <targetConfig targets="lightning__AppPage">
-        <property name="customerType" type="String" label="Customer Type" default="Company"/>
         <property name="recordId" type="String" label="Record Id" default=""/>
         <property name="objectApiName" type="String" label="Object Name" default="Account"/>
     </targetConfig>

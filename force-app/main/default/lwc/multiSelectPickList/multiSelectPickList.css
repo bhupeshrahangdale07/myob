@@ -7,7 +7,7 @@
 }
 .recordListBox {
  margin-top:0px !important;
- overflow-y: scroll;
+ /* overflow-y: scroll; */
 }
 .slds-listbox li {
     padding: .45rem 0.7rem !important;

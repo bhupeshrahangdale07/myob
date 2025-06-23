@@ -5,7 +5,7 @@
         </template>
         <!-- Modal Header Start -->
         <header class="slds-modal__header">
-            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
+            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeQuickAction}>
                 <lightning-icon icon-name="utility:close"
                                 alternative-text="close"
                                 variant="inverse"
@@ -24,35 +24,16 @@
                         <th>Fields</th>
                         <th>SF Data</th>
                         <th>MYOB Data</th>
+                        <th>Sync to</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- <template for:each={customerData} for:item="item" for:index="index">
-                        <tr key={item.fields} if:true={item.fields}>
-                            <td>{item.fields}</td>
-                            <td>
-                                <template if:true={item.check}>
-                                    <input type="checkbox" checked={item.qbData} disabled/>
-                                </template>
-                                <template if:false={item.check}>
-                                    {item.qbData}
-                                </template>
-                            </td>
-                            <td>
-                                <template if:true={item.check}>
-                                    <input type="checkbox" checked={item.sfData} disabled/>
-                                </template>
-                                <template if:false={item.check}>
-                                    {item.sfData}
-                                </template>
-                            </td>
-                        </tr>
-                    </template> -->
-                    <template for:each={data} for:item="item" for:index="index">
+                    <template for:each={datatableRows} for:item="item" for:index="index">
                         <tr key={item.KTMYOB__Field_Value__c}>
-                            <td>{item.KTMYOB__Field_Value__c}</td>
-                            <td>{item.KTMYOB__Field_API_Name__c}</td>
-                            <td>{item.KTMYOB__MYOB_Field_Api_Name__c}</td>
+                            <td>{item.Key}</td>
+                            <td>{item.SfFieldvalue}</td>
+                            <td>{item.MYOBFieldvalue}</td>
+                            <td><lightning-input type="toggle" message-toggle-active="Salesforce" message-toggle-inactive="MYOB" checked={item.DoSyncToSf} disabled={item.DoSyncToSf} onchange={syncContactFieldHandler} data-invoicefield={item.Key}></lightning-input></td>
                         </tr>
                     </template>
                 </tbody>
@@ -61,9 +42,18 @@
         <!-- Modal Body End -->
         <!-- Modal Footer Start -->
          <footer class="slds-modal__footer">
-            <button class="slds-button slds-button_brand buttonColor" onclick={hideModalBox}>Cancel</button>
-            <button class="slds-button slds-button_brand buttonColor" onclick={actionInsertContact}>Sync</button>
+            <button class="slds-button slds-button_brand buttonColor" onclick={closeQuickAction}>Cancel</button>
+            <button class="slds-button slds-button_brand buttonColor" name='Sync' onclick={upsertContactHandler}>Sync</button>
+            <button class="slds-button slds-button_brand buttonColor" name="Proceed" onclick={upsertContactHandler}>Proceed</button>
+
         </footer>
         <!-- Modal Footer End -->
+    </template>
+    <template if:true={isShowCreateModal}>
+        <c-customer-create
+            record-id={recordId}
+            object-api-name={objectApiName}
+            oncustomercreateupdate={handleCustomerCreateUpdate}
+        ></c-customer-create>
     </template>
 </template>

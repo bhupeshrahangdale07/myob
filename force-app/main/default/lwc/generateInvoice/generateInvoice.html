@@ -243,11 +243,115 @@
                                 <td></td>
                                 <td></td>
                             </tr>
+                            <template if:true={flagForBilling}>
+                            <tr>
+                            <td colspan="4" style="vertical-align: top;">
+                                {labelTwo}<lightning-helptext content="Use categories to classify transactions"></lightning-helptext>
+                                <lightning-textarea name="notesToCustomer"
+                                                    value={notesToCustomer}
+                                                    label="Notes to Customer"
+                                                    placeholder="Select the Notes" 
+                                                    variant="label-hidden"
+                                                    options={notesToCustomerOption} 
+                                                    onchange={updateLineItemValues}
+                                                    class="secondRowAlignment"></lightning-textarea>
+                            </td>
+                            <!-- <td></td>
+                            <td></td>
+                            <td></td> -->
+                            <td></td>
+                            <!-- <template if:true={showProductCode}> -->
+                                <td></td>
+                            <!-- </template> -->
+                            <td colspan="3" class="totalClass">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td style="width: 50%;"><p class="invoiceBillingSec">{labelThree}</p>
+                                <lightning-input label="Subtotal"
+                                                 value={invoiceSubtotal} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input></td>
+                                                 <td></td>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td><p class="invoiceBillingSec">{labelFour}</p>
+                                        <lightning-input name="invoiceFreight"
+                                                        label="Freight ($)"
+                                                        value={invoiceFreight} 
+                                                        type="number" 
+                                                        variant="label-hidden"
+                                                        onchange={updateBillingValues} ></lightning-input></td>
+
+                                                        <td><p class="invoiceBillingSec">{labelFive}</p>
+                                        <c-multi-select-pick-list name="invoiceFreightTax"
+                                                                placeholder-data="Select Tax Code"
+                                                                selected-value={invoiceFreightTax} 
+                                                                options={freightTaxOption} 
+                                                                onselectoption={updateBillingValues} 
+                                                                elementname="Freight"
+                                                                label=""></c-multi-select-pick-list></td>
+                                        </tr>
+                                        <tr>
+                                            <td><p class="invoiceBillingSec">{labelSix}</p>
+                                <lightning-input label="Tax"
+                                                 value={invoiceTax} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input></td>
+                                                 <td></td>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td><p class="invoiceBillingSec">{labelSeven}</p>
+                                <lightning-input label="Total"
+                                                 value={invoiceTotal} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input></td>
+                                                 <td></td>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td> <p class="invoiceBillingSec">{labelEight}</p>
+                                <lightning-input label="Amount paid ($)"
+                                                name="invoiceAmountPaid"
+                                                value={invoiceAmountPaid} 
+                                                class="validate"
+                                                type="number" 
+                                                step="any"
+                                                variant="label-hidden"
+                                                onchange={updateLineItemValues}></lightning-input></td>
+                                                <td></td>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td> <p class="invoiceBillingSec">{labelNine}</p>
+                                <lightning-input label="Balance Due"
+                                                 value={invoiceBalanceDue} 
+                                                 type="number" 
+                                                 step="any"
+                                                 variant="label-hidden"
+                                                 disabled={billingDisabledFields}></lightning-input></td>
+                                                 <td></td>
+                                            
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td></td>
+                        </tr> 
+                    </template>
                         </tbody>
                     </template>
                 </table>
             </div>
-            <div class="slds-m-top-large">
+            <!--div class="slds-m-top-large">
                 <template if:true={flagForBilling}>
                     <lightning-layout pull-to-boundary="medium">
                         <lightning-layout-item size="9" class="slds-p-left_large">
@@ -339,7 +443,7 @@
                         </lightning-layout-item>
                     </lightning-layout>
                 </template>
-            </div>
+            </div-->
         </div>
         <div class="actionSection" align="center">
             <footer>

@@ -7,6 +7,8 @@ import displayInvoiceNLineItems from '@salesforce/apex/InvoiceDynamicController.
 import getSingleInvoice from '@salesforce/apex/InvoiceDynamicController.getSingleInvoice';
 import updateInvoiceInSf from '@salesforce/apex/InvoiceDynamicController.updateInvoiceInSf';
 import { CloseActionScreenEvent } from 'lightning/actions';
+import modelPopupChangeWidth from '@salesforce/resourceUrl/modelPopupChangeWidth';
+import { loadStyle } from "lightning/platformResourceLoader";
 
 export default class InvoiceSync extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -31,6 +33,28 @@ export default class InvoiceSync extends NavigationMixin(LightningElement) {
         this.showLoading = true;
         this.getConnectionDetails();
     }
+     renderedCallback(){
+        Promise.all([
+            loadStyle(
+                this,
+                modelPopupChangeWidth
+            )
+        ]).then(() => {
+            /* CSS loaded */
+        }).catch((error) => {
+            this.error = error;
+            this.showLoading = false;
+            
+            this.showNotification("Something Went Wrong in Loading css .",error,'error');
+        });
+    //      if (typeof window !== 'undefined') {
+    //         const style = document.createElement('style');
+    //         style.innerText = `.modal-container.slds-modal__container{
+    //                             max-width: 950px;}`;
+    //         this.template.querySelector('lightning-card').appendChild(style);
+ 
+    //      }
+     }
 
 //Helper: to check if all the connection steps for authorization.
     getConnectionDetails(){
@@ -294,8 +318,10 @@ export default class InvoiceSync extends NavigationMixin(LightningElement) {
             if(buttonClicked === 'Proceed'){
                 this.rediretToGenerateInvoice();
             }else if(buttonClicked === 'Sync'){
+                this.showNotification(this.notificationTitle,'No Invoice Data was Sync from myob to salesforce','warning');
                 this.showLoading = false;
                 this.isShowModal = false;
+                this.closeQuickAction();
             }
         }
     }
