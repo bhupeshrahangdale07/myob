@@ -4,7 +4,23 @@
     --slds-c-button-brand-color-background : #A336F0;
     --slds-c-button-brand-color-background-hover : #6602A3;
 }
-
 .spinnerIcon{
     --lwc-brandPrimary: #6602A3;
+}
+.custom-container{
+     display: flex;
+    vertical-align: middle;
+    align-items: center;
+    margin-top: 15px;
+}
+.custom-box{
+    width: 352px;
+}
+.customCheckbox{
+    margin-left: 20px;
+}
+.checkboxClass{
+        margin-left: 3px;
+        margin-top: 3px;
+    --lwc-squareIconMediumContent : 25px;
 }

@@ -20,3 +20,9 @@ header.slds-modal__header {
 footer.slds-modal__footer {
     text-align: center;
 }
+ .closeIcon {
+        display:none !important;
+    }
+    button.slds-button.slds-button_icon.slds-modal__close.closeIcon.slds-button_icon-bare{
+        display:none !important;
+    }

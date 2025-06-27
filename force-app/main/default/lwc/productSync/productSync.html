@@ -4,9 +4,9 @@
             size="medium"></lightning-spinner>
     </template>
     <template if:true={showAllFilter}>
-        <div class="container">
-            <lightning-layout vertical-align="center" class="x-large">
-                <lightning-layout-item flexibility="auto" padding="around-small">
+        <div class="custom-container">
+            <!-- <lightning-layout vertical-align="center" class="x-large"> -->
+                <!-- <lightning-layout-item flexibility="auto" padding="around-small"> -->
 
                     <div class="custom-box">
                         <!-- Dropdown -->
@@ -14,26 +14,32 @@
                             onchange={handleDropdownChange}>
                         </lightning-combobox>
                     </div>
-                </lightning-layout-item>
+                <!-- </lightning-layout-item> -->
 
-                <lightning-layout-item flexibility="auto" padding="around-small">
+                <!-- <lightning-layout-item flexibility="auto" padding="around-small"> -->
                     <!-- Checkbox -->
-                    <div class="custom-box">
+                    <!-- <div class="custom-box">
                         <lightning-input type="checkbox" label="Active"
                             onchange={handleCheckboxChange}></lightning-input>
+                    </div> -->
+                    <div class="customCheckbox">
+                        <p style="margin-top: 2px;">Active</p>
+                        <lightning-input type="checkbox" name="Active"
+                            class="checkboxClass" onchange={handleCheckboxChange}></lightning-input>
                     </div>
-                </lightning-layout-item>
-            </lightning-layout>
-            <div>
-                <lightning-button label="Sync to Salesforce" onclick={handleSync} variant="brand"
-                    class="slds-var-m-around_large buttonColor"></lightning-button>
-            </div>
+                <!-- </lightning-layout-item> -->
+            <!-- </lightning-layout> -->
+            
         </div>
+        <div style="margin-top: 10px;">
+                <lightning-button label="Sync to Salesforce" onclick={handleSync} variant="brand"
+                    class="buttonColor"></lightning-button>
+            </div>
     </template>
     <template if:true={showModal}>
         <c-confirmation-modal-popup title={title} body={body} show-positive={showPositiveButton}
             positive-button-label={positiveButtonLabel} show-negative={showNegativeButton}
-            negative-button-label={negativeButtonLabel} onpositive={confirmSync} onnegative={closeModal}>
+            negative-button-label={negativeButtonLabel} onpositive={confirmSync} onnegative={closeModal} from-setup-page={isSetupPage}>
         </c-confirmation-modal-popup>
     </template>
 

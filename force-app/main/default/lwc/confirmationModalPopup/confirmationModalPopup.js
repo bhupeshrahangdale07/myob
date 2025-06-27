@@ -1,4 +1,6 @@
 import { api, LightningElement } from 'lwc';
+import hideCloseIcon from '@salesforce/resourceUrl/hideCloseIcon';
+import { loadStyle } from "lightning/platformResourceLoader";
 
 export default class ConfirmationModalPopup extends LightningElement {
     isShowModal = false;
@@ -8,6 +10,7 @@ export default class ConfirmationModalPopup extends LightningElement {
     @api positiveButtonLabel;
     @api showNegative;
     @api negativeButtonLabel;
+    @api fromSetupPage;
     //@api showModal;
 
     /*constructor() {
@@ -20,6 +23,21 @@ export default class ConfirmationModalPopup extends LightningElement {
     connectedCallback(){
         this.isShowModal = true;
     }
+    renderedCallback(){
+            Promise.all([
+                loadStyle(
+                    this,
+                    hideCloseIcon
+                )
+            ]).then(() => {
+                /* CSS loaded */
+            }).catch((error) => {
+                this.error = error;
+                this.showLoading = false;
+                
+                this.showNotification("Something Went Wrong in Loading css .",error,'error');
+            });
+        }
 
     hideModalBox(){
         this.isShowModal = false;

@@ -5,6 +5,8 @@ import { NavigationMixin } from 'lightning/navigation';
 import checkAuthorizationSteps from '@salesforce/apex/MYOB_Callout_Helper.checkAuthorizationSteps';
 import fetchAllMyobProducts from '@salesforce/apex/ProductDynamicController.fetchAllMyobProducts';
 import fetchMYOBObCSConfig from '@salesforce/apex/MYOB_Component_Helper_cls.fetchMYOBObCSConfig';
+import { CloseActionScreenEvent } from 'lightning/actions';
+
 
 export default class ProductSync extends NavigationMixin(LightningElement) {
     @api objectApiName;
@@ -13,6 +15,7 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
     @track selectedValue = 'All';
     @track isModalOpen = false;
     @track confirmationMessage = '';
+    @track isSetupPage = true;
 
     showAllFilter=true;
     showModal= false;
@@ -41,6 +44,7 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
 
 // method : Fetch all the custom settings to get mappings.
     fetchCSConfigs(){
+        this.showLoading = true;
         fetchMYOBObCSConfig()
         .then(response => {
             if(response){
@@ -49,11 +53,13 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
                     if(this.objectApiName && this.recordId){
                         if(this.objectApiName === response.productObjectApiName){
                         this.showAllFilter=false;
+                        this.isSetupPage = false;
                         this.handleSync();
                         }
                     }
                 }
             }
+            this.showLoading = false
         }).catch(error => {
             this.showLoading = false;
             console.error('!!! Error occurred while getting Custom Setting: ', error);
@@ -92,9 +98,15 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
 //method: Fetch all the prdocut from MYOB as per user inputs.
     fetchAllProductsToSf(){
         debugger;
-        fetchAllMyobProducts({'syncSingleProduct':false,
+        let requestObj = {};
+        if(this.showAllFilter === false){
+            requestObj = {'productId':this.recordId,'syncSingleProduct':true};
+        }else{
+            requestObj = {'syncSingleProduct':false,
            'isItemActive':this.isActive,
-           'itemType':this.selectedValue})      
+           'itemType':this.selectedValue};
+        }
+        fetchAllMyobProducts({...requestObj})      
         .then(response => {
             if (response.status === 'Success') {
                 this.showNotification(response.message,'success');
@@ -123,6 +135,9 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
             this.showLoading = false;
             this.showNotification('Product Sync from Salesfore to MYOB Failed. Contact System Administrator.','error');
         });
+        if(this.showAllFilter === false){
+            this.closeQuickAction();
+        }
     }
 
     
@@ -156,7 +171,9 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
             action = 'all products';
         }
 
-        if (this.isActive) {
+        if(this.showAllFilter === false){
+            return 'Are you sure you want to sync the product from MYOB to Salesforce?';
+        }else if (this.isActive) {
             return `Are you sure you want to sync all the active ${action}?`;
         } else {
             return `Are you sure you want to sync all the inactive ${action}?`;
@@ -166,6 +183,9 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
 //helper: Close Modal
     closeModal() {
         this.showModal = false;
+        if(this.showAllFilter ===false){
+            this.closeQuickAction();
+        }
     }
 
 //helper: Confirm Sync (Trigger Actual Sync Logic)
@@ -216,8 +236,14 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
 
         }
     }
-}
+ //Helper : to close the modal.
+    closeQuickAction() {
+        if (typeof window !== 'undefined') {
+            this.dispatchEvent(new CloseActionScreenEvent());
+        } 
+    }
 
+}
 
 
 

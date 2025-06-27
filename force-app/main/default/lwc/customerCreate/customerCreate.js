@@ -199,7 +199,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
             if (response.status === 'Success') {
                 console.log('### Authorization Successful');
                 this.fetchCSConfigs();
-                this.fetchSfContactRecord();
+                //this.fetchSfContactRecord();
             } else if (response.status === 'Failed' && response.isConnectionError) {
                 console.error('Authorization Failed: ', response.message);
                 this.handleAlert('Authorization Failed: Please complete all connection steps on MYOB Setup Page.','Connection Not Established');
@@ -214,9 +214,9 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
     }
 
 //fetch Custom Settings data.
-    fetchCSConfigs(){
+    async fetchCSConfigs(){
         debugger;
-        fetchMYOBObCSConfig()
+        await fetchMYOBObCSConfig()
         .then(response => {
             if(response){
                 if(response.contactCompanyObjectApiName === this.objectApiName){
@@ -229,6 +229,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                     this.disableCustomerType = true;
                     this.contactFieldMappings = response.mapMYOBApiNameIndividualData;
                 }
+                this.fetchSfContactRecord();
             }
         }).catch(error => {
             this.showLoading = false;
@@ -243,6 +244,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
         fetchSfContact({'contactId': this.recordId,'objectApiName':this.objectApiName,'getNonNullInvoiceFields':false})
         .then(result => {
             if(result){ 
+                console.log("Result- "+JSON.stringify(result));
                 this.flagForCustomerList = false;
                 this.isShowModal = true;
                 this.showLoading = false;
