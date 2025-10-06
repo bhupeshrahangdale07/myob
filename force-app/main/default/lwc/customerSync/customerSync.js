@@ -26,6 +26,7 @@ export default class InvoiceSync extends LightningElement {
     isIndividualContact=false;
     notificationTitle='';
     isShowCreateModal = false;
+    isShowbackdrop = false;
 
     connectedCallback(){
         this.showLoading = true;
@@ -38,7 +39,7 @@ export default class InvoiceSync extends LightningElement {
             if (response.status === 'Success'){
                 console.log('### Authorization Successful'); 
                 this.fetchCSConfigs();
-                this.fetchSfContactRecord();
+                //this.fetchSfContactRecord();
             } else if (response.status === 'Failed' && response.isConnectionError){
                 console.error('Authorization Failed: ', response.message);
                 this.handleAlert('Authorization Failed: Please complete all connection steps on MYOB Setup Page.','Connection Not Established');
@@ -66,6 +67,7 @@ export default class InvoiceSync extends LightningElement {
                     this.showNotification('Customer Sync','This object is not mapped as a Company or Individual Customer in Salesforce. Please add this button to a correctly mapped object or contact your system administrator for assistance.','error');
                     this.closeQuickAction();
                 }
+                this.fetchSfContactRecord();
             }
         }).catch(error => {
             this.showLoading = false;
@@ -99,6 +101,9 @@ export default class InvoiceSync extends LightningElement {
                 this.showLoading = false;
                 console.error('!!! Error occurred while getting record data: ', error);
             });
+        } else {
+            this.showNotification('Customer Sync','Customer failed to synced from MYOB to Salesforce','error');
+            this.closeQuickAction();
         }
     }
 
@@ -157,6 +162,7 @@ handleCustomerCreateUpdate(event){
         //TODO : do a normal sync from MYOb to Sf
         let buttonClicked = event.target.name;
         this.showLoading = true;
+        this.iscustomersync = true;
         updateContactInSF({
             'contactMap' : this.mappedContactFields,
             'contactId' : this.recordId,

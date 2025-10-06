@@ -13,7 +13,7 @@ public without sharing class MYOB_Callout_Helper {
         mapRequestHeaders.put('x-myobapi-key',Utils.processDecryption(myobInfo.KTMYOB__Client_Id__c));
         mapRequestHeaders.put('x-myobapi-version','v2'); //TODO ::: need to store this somewhere in Salesforce.
         mapRequestHeaders.put('Accept','application/json');
-
+        
         return doHTTPCallout(
             myobInfo.KTMYOB__Base_Url__c+Utils.processDecryption(myobInfo.KTMYOB__Company_File_Id__c)+apiDetails.requestEndpoint,
             apiDetails.requestMethod,
@@ -51,6 +51,7 @@ public without sharing class MYOB_Callout_Helper {
      * @return HTTPModel warapper
      */
     public static HTTPModel doHTTPCallout(String endpoint,String method,Map<String,String> mapRequestHeaders,String dataBody,CalloutDetails credObj){
+        system.debug('Endpoint- '+endpoint);
         boolean tempBoolean = false; //For scanning
         HTTPModel model = new HTTPModel();
         CalloutDetails apiDetails = (CalloutDetails)JSON.deserialize(JSON.serialize(credObj), CalloutDetails.class);
@@ -71,6 +72,7 @@ public without sharing class MYOB_Callout_Helper {
                 req.setTimeout(12 * 10000);
                 Http http = new Http();
                 HTTPResponse res = http.send(req);
+                system.debug('Res body- '+res.getBody());
                 model.isCalloutException = false;
                 model.response = res.getBody();
             

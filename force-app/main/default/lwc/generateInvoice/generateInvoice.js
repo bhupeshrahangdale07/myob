@@ -40,6 +40,9 @@ export default class GenerateInvoice extends LightningElement {
     labelEight = "Amount paid ($)";
     labelNine = "Balance Due"
     taxOption = TAXOPTION;
+    showFreightTax = false;
+    showTax = 0;
+    customerSelected = false;
 
     syncDue = '';
     syncTotal = '';
@@ -47,7 +50,7 @@ export default class GenerateInvoice extends LightningElement {
 
     //Invoice Details
     @track invoiceData = {};
-    selectedCustomer = '';
+    @track selectedCustomer = '';
     customerList = [];
     customerBillingAddr = {};
     flagForCustomerBillingAddr = false;
@@ -75,7 +78,8 @@ export default class GenerateInvoice extends LightningElement {
     notesToCustomerOption = []; //-------------------------------------------- Check
     invoiceSubtotal = 0.00;
     invoiceFreight = 0.00;
-    invoiceFreightTax = 0.00;
+    @track invoiceFreightTax = 0.00;
+    invoiceFreightTaxLabel = 'NT';
     invoiceTax = 0.00;
     invoiceTotal = 0.00;
     invoiceAmountPaid = 0.00;
@@ -114,17 +118,26 @@ export default class GenerateInvoice extends LightningElement {
     individualMyobSfFldMapping = [];
     @track myobSfFldMapping;
     @track customerId;
+    @track objectName;
+    selected;
+    myOBUID;
 
 
     @wire(CurrentPageReference)
     currentPageReference({ state }) {
         if (state && state.c__recordId) {
             this.invoiceId = state.c__recordId;
+        }if(state && state.c__objrecordId){
+            this.selected = true;
+            this.customerId = state.c__objrecordId;
+            this.myOBUID = state.c__UID;
+            //this.getCustomerPicklist();
         }
+        console.log('this.selectedCustomer- '+this.selectedCustomer);
     }
     
     connectedCallback(){
-        console.clear();
+        //console.clear();
         this.invoiceData.amountsAre = 'taxInclusive';
         this.showLoading = true;
         this.getConnectionDetails();
@@ -167,9 +180,15 @@ export default class GenerateInvoice extends LightningElement {
                 this.customerPicklistOrdered = Object.keys(data.listOfMapOfSelectedCustomer).map(Index => {
                     let customerDetails = data.listOfMapOfSelectedCustomer[Index];
                     let label = customerDetails['CompanyName'] ? customerDetails['CompanyName'] : `${customerDetails['FirstName']} ${customerDetails['LastName']}`;
+                    let UID;
+                    if(customerDetails['UID'] != undefined){
+                        UID = customerDetails['UID'];
+                    }
                     return {
                         label: label,
-                        value: customerDetails['Id']
+                        value: customerDetails['Id'],
+                        objectName:  customerDetails['ObjectApiName'],
+                        myobUID: customerDetails['UID']
                     };
                 });
                 if(!this.invoiceId){
@@ -180,6 +199,9 @@ export default class GenerateInvoice extends LightningElement {
                 }
                 if(this.customerPicklistOrdered){
                     this.handleFlagChange();
+                }
+                if(this.selected){
+                    this.updateCustomerValues();
                 }
                 console.log('### Sorted customerPicklistOrdered Data: ', JSON.stringify(this.customerPicklistOrdered));
                 this.getProductPicklist();
@@ -193,7 +215,9 @@ export default class GenerateInvoice extends LightningElement {
     }
 
     handleFlagChange() {
+        this.isShowModal = false;
         this.flagForCustomerList = true;
+        //this.selectedCustomer = '';
     }
 
     getProductPicklist(){
@@ -223,7 +247,9 @@ export default class GenerateInvoice extends LightningElement {
                 });
                 console.log('### Sorted taxCodeOption: ', JSON.stringify(this.taxCodeOption));
                 console.log('### Sorted freightTaxOption: ', JSON.stringify(this.freightTaxOption));
-                this.freightTaxOption = this.taxCodeOption;
+                //this.freightTaxOption = this.taxCodeOption;
+                this.freightTaxOption = [{"label":"NT","value":"NT"}, ...this.taxCodeOption];
+                console.log('freightTaxOption- '+JSON.stringify(this.freightTaxOption));
                 this.flagForBilling = true;
                 this.preInvoiceSettings();
             }
@@ -232,6 +258,12 @@ export default class GenerateInvoice extends LightningElement {
             this.showLoading = false;
             console.error('!!! Error in productList: ', JSON.stringify(error));
         });
+    }
+    freightTaxClickHandler(){
+        this.showFreightTax = true;
+    }
+    handleOnBlur(event){
+         this.showFreightTax = false;
     }
 
     preInvoiceSettings(){
@@ -329,9 +361,41 @@ export default class GenerateInvoice extends LightningElement {
             }
             if(targetName === 'selectCustomer'){
                 this.fromGenerateInvoice = true;
-                this.customerId = event.detail;
-                this.flagForCustomerList =  false;
-                this.isShowModal = true;
+                this.customerId = event.detail.value;
+                this.selectedCustomer = event.detail.value;
+                if(event.detail.objectName != undefined){
+                    this.objectName = event.detail.objectName;
+                }
+                if(event.detail.UID !== ''){
+                    this.customerBillingAddr = this.customerList.find(item => item.Id === this.customerId);
+                    this.emailToCheck = this.customerBillingAddr.BillAddrToEmail;
+                    this.invoiceData.CompanyUID = this.customerId;
+                    this.isShowModal = false;
+                    this.customerSelected = true;
+                    this.flagForCustomerBillingAddr = true;
+                }else{
+                    this.isShowModal = true;
+                    this.flagForCustomerList =  false;
+                    this.flagForCustomerBillingAddr = false;
+                }
+                
+            }else{
+                if(this.myOBUID != ''){
+                this.selectedCustomer = this.customerId;
+                this.customerBillingAddr = this.customerList.find(item => item.Id === this.customerId);
+                    this.emailToCheck = this.customerBillingAddr.BillAddrToEmail;
+                    this.isShowModal = false;
+                    this.customerSelected = true;
+                    this.flagForCustomerBillingAddr = true;
+                } else {
+                    this.selectedCustomer = this.customerId;
+                    this.customerBillingAddr = this.customerList.find(item => item.Id === this.customerId);
+                    this.fromGenerateInvoice = true;
+                    this.objectName = this.customerBillingAddr.ObjectApiName;
+                    this.isShowModal = true;
+                    this.flagForCustomerList =  false;
+                    this.flagForCustomerBillingAddr = false;
+                }
             }
         }catch(error){
             console.log('!!! Error in updateCustomerValues(): ' + error);
@@ -455,6 +519,9 @@ export default class GenerateInvoice extends LightningElement {
                 targetName = event.target.name;
             }
             const foundelement = this.lineitemRecords.find(ele => ele.id === event.target.dataset.id);
+            if(targetName == 'invoiceAmountPaid'){
+                this.invoiceAmountPaid = event.target.value;
+            }else{
             if(foundelement.TaxCode){
                 let selectedProductIndex = this.taxCodeOption.findIndex(item => item.value === foundelement.TaxCode);
                 if (selectedProductIndex !== -1) {
@@ -466,8 +533,9 @@ export default class GenerateInvoice extends LightningElement {
             }else{
                 selectedProductTaxRate = 0.00;
             }
+         }
             if(targetName === 'itemId'){
-                let selectedProductId = event.detail;
+                let selectedProductId = event.detail.value;
                 console.log('$$$ selectedProduct Id: ', JSON.stringify(selectedProductId));
                 if(selectedProductId){
                     let selectedProductIndex = this.itemIdOption.findIndex(item => item.value === selectedProductId);
@@ -502,7 +570,7 @@ export default class GenerateInvoice extends LightningElement {
                 foundelement.DiscountPercent = event.target.value;
                 foundelement.Amount = this.countLineItemAmountValue(foundelement.UnitCount,foundelement.UnitPrice,foundelement.DiscountPercent, selectedProductTaxRate);
             }else if(targetName === 'taxCode'){
-                foundelement.TaxCode = event.detail;
+                foundelement.TaxCode = event.detail.value;
                 let selectedProductIndex = this.taxCodeOption.findIndex(product => product.value === foundelement.TaxCode);
                 if (selectedProductIndex !== -1) {
                     let selectedTax = Object.values(this.taxList).find(ele => ele.KTMYOB__MYOB_Id__c === foundelement.TaxCode);
@@ -516,8 +584,11 @@ export default class GenerateInvoice extends LightningElement {
             this.countSubTotal();
             this.calculateFreight();
             //this.calculateTax();
-            this.calculateTotal();
-            this.calculateBill();
+            //if(targetName !== 'taxCode'){
+              this.calculateTotal();
+              this.calculateBill();
+            //}
+            
         }catch(error){
             this.showLoading = false;
             console.log('!!! Error in updateLineItemValues(): ' + error);
@@ -527,22 +598,28 @@ export default class GenerateInvoice extends LightningElement {
 
     updateBillingValues(event){
         this.showLoading = true;
+        
         try{
             let targetName = '';
             if(typeof event !==  'undefined') {
                 targetName = event.target.name;
             }
             if(targetName === 'notesToCustomer'){
-                this.notesToCustomer = event.target.value;
+                this.notesToCustomer = event.detail.value;
             }else if(targetName === 'invoiceFreight'){
-                this.invoiceFreight = event.target.value;
+                this.invoiceFreight = event.detail.value;
             }else if(targetName === 'invoiceFreightTax'){
-                this.invoiceFreightTax = event.target.value;
+                this.invoiceFreightTax = event.detail.value;
+                this.invoiceFreightTaxLabel = event.detail.label;
+            
             }
+            this.calculateTotal();
+            this.calculateBill();
         }catch(error){
             this.showLoading = false;
             console.log('!!! Error in updateBillingValues(): ' + error);
         }
+        this.showFreightTax = false;
         this.showLoading = false;
     }
 
@@ -567,9 +644,13 @@ export default class GenerateInvoice extends LightningElement {
             }else if(UnitCount !== null && UnitPrice !== null && selectedProductTax !== null && UnitCount !== 0 && UnitPrice !== 0 && selectedProductTax !== 0) {
                 newAmount = (UnitCount * UnitPrice).toFixed(TWO);
                 if(this.invoiceData.amountsAre === 'taxInclusive'){
-                    discountedTaxedAmount = (parseFloat(newAmount) - (parseFloat(newAmount) * (selectedProductTax/HUNDRED))).toFixed(TWO);
+                    discountedTaxedAmount = (parseFloat(newAmount) + (parseFloat(newAmount) * (selectedProductTax/HUNDRED))).toFixed(TWO);
+                    //this.invoiceTax = (parseFloat(newAmount) * (selectedProductTax/HUNDRED)).toFixed(TWO);
+                    this.showTax = (parseFloat(newAmount) * (selectedProductTax/HUNDRED)).toFixed(TWO);
                     return discountedTaxedAmount;
                 }else{
+                    this.showTax = (parseFloat(newAmount) * (selectedProductTax/HUNDRED)).toFixed(TWO);
+                     
                     return newAmount;
                 }
             }else if(UnitCount !== null && UnitPrice !== null && UnitCount !== 0 && UnitPrice !== 0) {
@@ -823,6 +904,19 @@ export default class GenerateInvoice extends LightningElement {
     hideModalBox(){
         this.isShowModal = false;
         this.handleFlagChange();
+    }
+    handleCancelClick(){
+        this.isShowModal = false;
+        this.flagForCustomerList = true;
+        this.selectedCustomer = '';
+        //this.handleFlagChange();
+    }
+    handleSaveClick(){
+        this.isShowModal = false;
+        this.flagForCustomerList = true;
+    }
+    clearHandler(){
+        location.reload();
     }
 
     shippingSameAsBillingHandler(event){

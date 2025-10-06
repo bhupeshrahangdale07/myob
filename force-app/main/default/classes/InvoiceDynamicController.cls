@@ -77,6 +77,7 @@ public with sharing class InvoiceDynamicController{
             }
             if(invoiceWrp.mapInvoiceDetails.keySet().size()>0 && invoiceWrp.lstMapLineItemDetails.size()>0){
                 cmpRes =  createUpdateInvoiceInMYOB(invoiceWrp);
+                system.debug('cmpRes--- '+cmpRes);
                 return cmpRes;
             }
         } catch (Exception e) {
@@ -103,7 +104,7 @@ public with sharing class InvoiceDynamicController{
 
             if(mapMYOBInvoiceFldNameSfValue != null
                 && lstMapMYOBLineItemFldNameSfValue != null){
-
+                    system.debug('mapMYOBInvoiceFldNameSfValue- '+mapMYOBInvoiceFldNameSfValue);
                 //1. Assign the map and list<map>, containing details of Invoice and its line items.
                 mapMYOBInvoiceFldNameSfValue = invoiceWrp.mapInvoiceDetails;
                 lstMapMYOBLineItemFldNameSfValue = invoiceWrp.lstMapLineItemDetails;

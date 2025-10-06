@@ -17,6 +17,8 @@ export default class MultiSelectPickList extends LightningElement {
     @track searchString;
     @track noResultMessage;
     @track showDropdown = false;
+    @track objectName;
+    @track UID;
     @api initializeComponent(){
         this.searchString='';
         this.value='';
@@ -115,6 +117,14 @@ export default class MultiSelectPickList extends LightningElement {
                     } else {
                         this.value = options[index].value;
                         this.searchString = options[index].label;
+                        if(options[index].hasOwnProperty('objectName')){
+                            this.objectName = options[index].objectName;
+                        }
+                        if(options[index].hasOwnProperty('myobUID')){
+                            this.UID = options[index].myobUID;
+                        }else{
+                            this.UID = '';
+                        }
                     }
                 }
                 if(options[index].selected) {
@@ -124,12 +134,23 @@ export default class MultiSelectPickList extends LightningElement {
             this.optionData = options;
             if(this.multiSelect){
                 this.searchString = `${count  } Option(s) Selected`;
-                const ev = new CustomEvent('selectoption', {detail:this.values});
+                const ev = new CustomEvent('selectoption', {
+                    detail:{
+                        value: this.values
+                    }
+                });
                 this.dispatchEvent(ev);
             }
                 
             if(!this.multiSelect){
-                const ev = new CustomEvent('selectoption', {detail:this.value});
+                const ev = new CustomEvent('selectoption', {
+                    detail:{
+                        value: this.value,
+                        label: this.searchString,
+                        objectName: this.objectName,
+                        UID: this.UID
+                    }
+                });
                 this.dispatchEvent(ev);
             }
             if(this.multiSelect){
@@ -214,5 +235,7 @@ export default class MultiSelectPickList extends LightningElement {
             this.searchString = previousLabel;
         }
         this.showDropdown = false;
+        const ev = new CustomEvent('blur', {detail:false});
+            this.dispatchEvent(ev);
     }
 }

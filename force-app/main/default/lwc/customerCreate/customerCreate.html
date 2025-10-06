@@ -1,15 +1,16 @@
 <template>
     <!-- <lightning-card variant="narrow" class="customCard"> -->
         <template if:true={isShowModal}>
-            <!-- <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open"> -->
-                <!-- <div class="slds-modal__container"> -->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container" style="width:100%;">
                     <template if:true={showLoading}>
                         <lightning-spinner class="spinnerIcon" alternative-text="Loading..." variant="brand" size="medium"></lightning-spinner>
                     </template>
                     <!-- Modal Header Start -->
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeQuickAction}>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"  name="Cancel" onclick={closeQuickAction}>
                             <lightning-icon icon-name="utility:close"
+                                            name="Cancel"
                                             alternative-text="close"
                                             variant="inverse"
                                             size="small" ></lightning-icon>
@@ -371,6 +372,32 @@
                                 </div>
                             </div>
                     </lightning-accordion-section>
+                    <lightning-accordion-section name="Tax" label="Tax">
+                         <div class="rowSection">
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                    Tax Code
+                                    <c-multi-select-pick-list style="width: 30%;"
+                                                  name="selectTax"
+                                                  placeholder-data="Please Select Customer"
+                                                  selected-value={customerRecord.TaxCode} 
+                                                  options={taxPicklistValues} 
+                                                  onselectoption={updateCustomerValues}
+                                                  elementname="Customer" 
+                                                  label=""></c-multi-select-pick-list>
+                                </div>
+                                <div class="slds-p-horizontal_small slds-col slds-size_6-of-12 slds-m-bottom--small">
+                                        Freight Tax Code
+                                    <c-multi-select-pick-list style="width: 30%;"
+                                                  name="selectFreightTax"
+                                                  placeholder-data="Please Select Customer"
+                                                  selected-value={customerRecord.FreightTaxCode} 
+                                                  options={taxPicklistValues} 
+                                                  onselectoption={updateCustomerValues}
+                                                  elementname="Customer" 
+                                                  label=""></c-multi-select-pick-list>
+                                </div>
+                            </div>
+                    </lightning-accordion-section>
                     <lightning-accordion-section name="Notes" label="Notes">
                          <div class="rowSection">
                                 <div class="slds-p-horizontal_small slds-col slds-size_12-of-12 slds-m-bottom--small">
@@ -384,7 +411,7 @@
                                 </div>
                             </div>
                     </lightning-accordion-section>
-                </lightning-accordion>
+                 </lightning-accordion>
                         <!--ABN & Contact Id Section-->
                       <!-- <div class="rowSection">
                             <p class="customerForm">{labelshowABNnContactId}</p>
@@ -749,13 +776,15 @@
                     <!-- Modal Body End -->
                     <!-- Modal Footer Start -->
                     <footer class="slds-modal__footer">
-                        <button class="slds-button slds-button_brand buttonColor" onclick={closeQuickAction}>Cancel</button>
-                        <button class="slds-button slds-button_brand buttonColor" onclick={createUpdateInMYOB}>Save</button>
+                        <button class="slds-button slds-button_brand buttonColor" name="Cancel" onclick={closeQuickAction}>Cancel</button>
+                        <button class="slds-button slds-button_brand buttonColor" name="Save" onclick={createUpdateInMYOB}>Save</button>
                     </footer>
                     <!-- Modal Footer End -->
-                <!-- </div>
+                </div>
             </section>
-            <div class="slds-backdrop slds-backdrop_open"></div> -->
+            <template if:true={fromGenerateInvoice}>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
         </template>
     <!-- </lightning-card> -->
 </template>

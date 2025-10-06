@@ -61,6 +61,7 @@ public without sharing class ContactDynamicController {
         MYOB_Callout_Helper.ComponentResponse cmpRes = new MYOB_Callout_Helper.ComponentResponse();
         Map<String,Object> mapMYOBFldNameSFValue = new Map<String,Object>();
         try{
+            system.debug('Inside Calss');
             //check if all Authourization steps are completed.
             cmpRes = MYOB_Callout_Helper.checkAuthorizationSteps();
             MYOB_Callout_Helper.CalloutDetails calloutWrapper;
@@ -80,11 +81,12 @@ public without sharing class ContactDynamicController {
                 if(mapMYOBFldNameSFValue.keyset().size()>0){
                     calloutWrapper = genericCreateContactBody(mapMYOBFldNameSFValue,contactId);
                 }
+                system.debug('calloutWrapper.requestBody- '+calloutWrapper.requestBody);
                 //2. Creating response i.e. handled in Lwc as Toast message.
                 calloutWrapper.recordId = contactId;
                 calloutWrapper.helper = 'ContactDynamicController.createUpdateContact()';
                 MYOB_Callout_Helper.HTTPModel objHTTP = MYOB_Callout_Helper.genericCalloutMethod(calloutWrapper.requestBody,new Map<String,String>(),calloutWrapper);
-
+                
                 //3. Publishing the Callout Response to UI
                 String successMsg = 'The contact has been successfully synced into MYOB.' ;
                 String errorMsg = 'The contact failed to Sync into MYOB.' ;
@@ -243,10 +245,11 @@ public without sharing class ContactDynamicController {
         String requestBody = '';
         try{
             //Generic Logic for all Contact Types(i.e. Customer,Supplier,Personal)
-            customerObj.UID = (String) mapMYOBContactFldNameSfValue.get('UID');
+            // customerObj.UID = (String) mapMYOBContactFldNameSfValue.get('UID');
             if(String.isNotBlank((String) mapMYOBContactFldNameSfValue.get('UID')) 
                 && String.isNotBlank((String) mapMYOBContactFldNameSfValue.get('RowVersion')) ){
                 contactId = '';
+                customerObj.UID = (String) mapMYOBContactFldNameSfValue.get('UID');
                 customerObj.RowVersion = (String) mapMYOBContactFldNameSfValue.get('RowVersion');
                 calloutWrapper.requestMethod = 'PUT';    
                 calloutWrapper.requestEndpoint='/Contact/Customer/'+(String) mapMYOBContactFldNameSfValue.get('UID');
@@ -700,6 +703,10 @@ public without sharing class ContactDynamicController {
                     }
 
                     //Billing and Shipping address details
+                    // add null checker for address
+                    system.debug('customerObj.Addresses- '+customerObj.Addresses);
+                    if(customerObj.Addresses != null){
+
                     for(MYOB_CustomerResponse.cls_Addresses address: customerObj.Addresses){
                         if(address.Location == 1){
                             if(String.isNotBlank(mapMYOBApiNameCompanyData.get('BillAddrStreet').KTMYOB__Field_API_Name__c) && String.isNotBlank(address.Street)){
@@ -759,6 +766,7 @@ public without sharing class ContactDynamicController {
                             }
                         }
                     }
+                }
 
                 }
                 if(customer != null){
@@ -784,10 +792,55 @@ public without sharing class ContactDynamicController {
                 }
             }
         }catch(Exception e){
+            system.debug('Exception here');
             HandleCustomException.LogException(e);
             upsertStatus = 'failed';
         }
         return upsertStatus;
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<KTMYOB__MYOB_MetaData__c> getTaxCodeList(){
+        try {
+
+            List<KTMYOB__MYOB_MetaData__c> taxCodeList = [Select Id, Name, KTMYOB__Tax_Code__c, KTMYOB__Active__c FROM KTMYOB__MYOB_MetaData__c WHERE KTMYOB__Active__c =: true];
+
+            return taxCodeList;
+            
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    @AuraEnabled
+    public static string getRecordDetails(string recordId, string objectApiName){
+        try {
+
+            if(objectApiName == 'Account'){
+                List<Account> accList = [Select Id,KTMYOB__MYOB_Contact_UID__c From Account Where Id =: recordId];
+                string UID = accList[0].KTMYOB__MYOB_Contact_UID__c;
+                system.debug('UID- '+accList[0].KTMYOB__MYOB_Contact_UID__c);
+                if( UID == null){
+                    system.debug('UID- '+accList[0].KTMYOB__MYOB_Contact_UID__c);
+                    return '';
+                }else{
+                    return UID;
+                }
+                 
+            }else if(objectApiName == 'Contact'){
+                List<Contact> conList = [Select Id,KTMYOB__Contact_UID__c From Contact Where Id =: recordId];
+                string UID = conList[0].KTMYOB__Contact_UID__c;
+                if(UID == null){
+                    return '';
+                }else{
+                    return UID;
+                }
+            } else {
+                return 'Failed';
+            }
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
     }
 
 

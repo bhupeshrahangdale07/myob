@@ -132,3 +132,15 @@ footer.slds-modal__footer {
 .secondRowAlignment{
     margin-bottom: 20px;
 }
+/* .inputCls.input.slds-input{
+    text-align: right;
+} */
+td.inputCls lightning-input.slds-input[type="number"] {
+    text-align: center !important;
+}
+/* td.input.inputCls.input-text-align_right{
+    text-align: center !important; 
+} */
+ div.input.inputCls.input-text-align_right{
+    text-align: center;
+ }

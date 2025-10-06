@@ -114,6 +114,7 @@ public with sharing class GenerateInvoiceController {
                                     if (String.isNotBlank(mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)) {
                                         if(contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c) != null){
                                             custFldMap.put(myobFieldApiName, contactRecordQueried.get((mapMYOBApiNameCompanyData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                                            custFldMap.put('ObjectApiName',contactCompanyObjectApiName);
                                         }
                                         if(!mapOfMyobFldApiNameNdSfFldApiNameCompany.containsKey(myobFieldApiName)){
                                             mapOfMyobFldApiNameNdSfFldApiNameCompany.put(myobFieldApiName,mapMYOBApiNameCompanyData.get(myobFieldApiName).KTMYOB__Field_API_Name__c);
@@ -161,6 +162,7 @@ public with sharing class GenerateInvoiceController {
                                     if (String.isNotBlank(mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c)) {
                                         if(contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c) != null){
                                             custFldMap.put(myobFieldApiName, contactRecordQueried.get((mapMYOBApiNameIndividualData.get(myobFieldApiName)).KTMYOB__Field_API_Name__c));
+                                            custFldMap.put('ObjectApiName',contactIndividualObjectApiName);
                                         }
                                         if(!mapOfMyobFldApiNameNdSfFldApiNameIndividual.containsKey(myobFieldApiName)){
                                             mapOfMyobFldApiNameNdSfFldApiNameIndividual.put(myobFieldApiName,mapMYOBApiNameIndividualData.get(myobFieldApiName).KTMYOB__Field_API_Name__c);

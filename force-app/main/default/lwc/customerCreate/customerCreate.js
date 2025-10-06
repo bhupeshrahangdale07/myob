@@ -7,6 +7,10 @@ import fetchMYOBObCSConfig from '@salesforce/apex/MYOB_Component_Helper_cls.fetc
 import createUpdateContact from '@salesforce/apex/ContactDynamicController.createUpdateContact';
 import fetchSfContact from '@salesforce/apex/ContactDynamicController.fetchSfContact';
 import { CloseActionScreenEvent } from 'lightning/actions';
+import hideCloseIcon from '@salesforce/resourceUrl/hideCloseIcon';
+import { loadStyle } from "lightning/platformResourceLoader";
+import { CurrentPageReference } from 'lightning/navigation';
+import getTaxCodeList from '@salesforce/apex/ContactDynamicController.getTaxCodeList';
 
 
 const CUSTOMERTYPEOPTION = [
@@ -173,25 +177,95 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
     shippingCountryOption = COUNTRYOPTION;
     shippingStateOption = [];
     disableShippingAddr = false;
+    @track taxPicklistValues = [];
 
-    @api recordId;
+    //@api recordId;
     @api objectApiName;
     customerType;
     customerRecord={};
     allValid=false;
     individualContact = false;
+    @api fromGenerateInvoice;
+    isIndividual;
+    wireRecordId; //this will hold the current record id fetched from pagereference
+    currectRecordId; //this will hold the current record id fetched from getter and setter
+    selectedFreightTaxCode;
+    selectedTaxCode;
 
     companyMyobSfFldMapping = {};
     individualMyobSfFldMapping = {};
     contactFieldMappings={};
+    @track hasRendered = false;
 
+    @wire(CurrentPageReference)
+    getStateParameters(currentPageReference) {
+        if (currentPageReference) {
+            if(this.fromGenerateInvoice == false){
+            console.log('currentPageReference ', currentPageReference);
+            //it gets executed before the connected callback and avilable to use
+            this.wireRecordId = currentPageReference.state.recordId;
+            let quickActionPath = currentPageReference.attributes.apiName;
+            const apiField = quickActionPath;
+            const objectName = apiField.split('.')[0];
+            this.objectApiName = objectName;
+            console.log(objectName); // Outputs: "Contact"
+            }
+        }
+    }
 
+     @wire(getTaxCodeList)
+    wiredContacts({ error, data }) {
+        if (data) {
+            //this.taxPicklistValues = data;
+            this.taxPicklistValues = Object.keys(data).map(Index => {
+                    let taxValue = data[Index];
+                    let label = taxValue['KTMYOB__Tax_Code__c'];
+                    
+                    return {
+                        label: label,
+                        value: taxValue['Id']
+                    };
+                });
+            this.error = undefined;
+        } else if (error) {
+            this.error = error;
+            this.taxPicklistValues = undefined;
+        }
+    }
+
+ @api set recordId(value) {
+        this.currectRecordId = value;
+        console.log('this.currectRecordId ',this.currectRecordId);
+
+        //onload action here where you need current recordid
+        //this gets executed post connected callback
+    }
+
+    get recordId() {
+        return this.currectRecordId;
+    }
     connectedCallback(){
         console.log("$$$ customerType", this.customerType);
         console.log("$$$ recordId", this.recordId);
+        console.log("$$$ objectApiName", this.objectApiName);
         this.showLoading = true;
         this.getConnectionDetails();
     }
+     renderedCallback(){
+            Promise.all([
+                loadStyle(
+                    this,
+                    hideCloseIcon
+                )
+            ]).then(() => {
+                /* CSS loaded */
+                //this.fetchCSConfigs();
+            }).catch((error) => {
+                this.error = error;
+                this.showLoading = false;
+                this.showNotification("Something Went Wrong in Loading css .",error,'error');
+            });
+        }
 
     getConnectionDetails(){
         checkAuthorizationSteps()
@@ -225,6 +299,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                     this.contactFieldMappings = response.mapMYOBApiNameCompanyData;
                 }else if(response.contactIndividualObjectApiName === this.objectApiName){
                     this.customerType = 'Individual';
+                    this.isIndividual = true;
                     this.isIndividualContact = true;
                     this.disableCustomerType = true;
                     this.contactFieldMappings = response.mapMYOBApiNameIndividualData;
@@ -274,6 +349,13 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                 }else{
                     this.isIndividual = true;
                 }
+            } 
+            if(targetName === 'selectTax'){
+                this.selectedTaxCode = event.detail.value;
+                this.customerRecord.TaxCode = event.detail.value;
+            }else if(targetName === 'selectFreightTax'){
+                this.selectedFreightTaxCode = event.detail.value;
+                this.customerRecord.FreightTaxCode = event.detail.value;
             }
             if(this.contactFieldMappings[targetName]){
                 this.customerRecord[targetName] = event.target.value;
@@ -292,6 +374,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
     createUpdateInMYOB(){
         try{
             this.reportFieldValidity();
+            console.log('this.allValid- '+this.allValid);
             if(this.recordId && this.objectApiName && this.customerRecord && this.allValid){
                 this.showLoading = true;                
                 this.recordId = this.recordId.trim().slice(0, -3);            
@@ -334,6 +417,8 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                     this.showNotification('Customer creation in MYOB Failed. Contact System Administrator.','error');
                     this.closeQuickAction();  
                 });
+            } else {
+                this.showNotification('Some invalid values were entered. Please check the values again.','error');
             }
         }catch{
             this.showLoading = false;
@@ -381,6 +466,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
     reportFieldValidity(){
     this.allValid = [...this.template.querySelectorAll("lightning-input")].reduce(
         (validSoFar, inputFields) => {
+            console.log('inputFields.reportValidity()- '+inputFields.validationMessage);
             inputFields.reportValidity();
             return validSoFar && inputFields.checkValidity();
         },
@@ -390,10 +476,25 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
 
 
 //Helper : to close the modal.
-    closeQuickAction() {
-        if (typeof window !== 'undefined') {
+    closeQuickAction(event) {
+        //event.preventDefault();
+        
+        try {
+            if (typeof window !== 'undefined' && event != undefined) {
+                this.isShowModal = false;
+                if(event.target.name == 'Cancel'){
+                    this.dispatchEvent(new CustomEvent('cancelclick'));
+                }else if(event.target.name == 'Save'){
+                    this.dispatchEvent(new CustomEvent('saveclick'));
+                }
+            
             this.dispatchEvent(new CloseActionScreenEvent());
         } 
+        this.dispatchEvent(new CloseActionScreenEvent());
+        } catch (error) {
+            console.log('error- '+JSON.stringify(error));
+        }
+        
     }
 
 //Helper : to show notification and on click of OK button redirect page to the Setup page.

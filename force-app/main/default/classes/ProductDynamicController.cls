@@ -81,7 +81,7 @@ public with sharing class ProductDynamicController {
                         }
                     }
                 }
-                if(String.isNotBlank(calloutQueryParams)){
+                if(String.isNotBlank(calloutQueryParams) && syncSingleProduct == false){
                     calloutWrapper.requestEndpoint+='?$filter='+EncodingUtil.urlEncode(calloutQueryParams,'UTF-8');
                 }
                 
