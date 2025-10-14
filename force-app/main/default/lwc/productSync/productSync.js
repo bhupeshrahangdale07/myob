@@ -110,6 +110,10 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
         .then(response => {
             if (response.status === 'Success') {
                 this.showNotification(response.message,'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 500); // Adjust delay as needed
+                resolve(response);
             } else if (response.status === 'Failed' || response.isConnectionError) {
                 if(response.message){
                     this.showNotification(response.message,'error');
@@ -128,7 +132,7 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
                     });
                 }else{
                     this.showNotification('Unexpected Error : Contact your System Administrator,','error');
-                } 
+                }
             }
             this.showLoading = false;
         }).catch(error => {
@@ -233,7 +237,6 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
                 variant: type
             });
             this.dispatchEvent(evt);
-
         }
     }
  //Helper : to close the modal.
