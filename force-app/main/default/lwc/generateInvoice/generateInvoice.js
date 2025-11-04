@@ -8,6 +8,7 @@ import createUpdateInvoiceParse from '@salesforce/apex/InvoiceDynamicController.
 import customerList from '@salesforce/apex/GenerateInvoiceController.customerList';
 import displayInvoiceNLineItems from '@salesforce/apex/InvoiceDynamicController.displayInvoiceNLineItems';
 import productList from '@salesforce/apex/GenerateInvoiceController.productList';
+import { NavigationMixin } from 'lightning/navigation';
 
 const TAXOPTION = [
         { label: 'Tax inclusive', value: 'taxInclusive'},
@@ -20,7 +21,7 @@ const TAXOPTION = [
     TWO = 2,
     ZERO = 0;
   
-export default class GenerateInvoice extends LightningElement {
+export default class GenerateInvoice extends NavigationMixin(LightningElement) {
     @track flagForCustomerList = false;
     @track flagForLineItemRecords = false;
     @track flagForBilling = false;
@@ -393,8 +394,8 @@ export default class GenerateInvoice extends LightningElement {
                     this.fromGenerateInvoice = true;
                     this.objectName = this.customerBillingAddr.ObjectApiName;
                     this.isShowModal = true;
+                    this.customerSelected = true;
                     this.flagForCustomerList =  false;
-                    this.flagForCustomerBillingAddr = false;
                 }
             }
         }catch(error){
@@ -781,9 +782,21 @@ export default class GenerateInvoice extends LightningElement {
                 console.log('$$$ createInvoiceHandler.invoiceDetailsWrapper: ', JSON.stringify(invoiceDetailsWrapper));
                 createUpdateInvoiceParse({"wrp" : JSON.stringify(invoiceDetailsWrapper)})
                 .then(response => {
+                    console.log('response-== '+JSON.stringify(response));
                     if (response.status === 'Success') {
                         this.showLoading = false;
                         this.showNotification('Invoice synced successfully!', 'success');
+                        if(response.invoiceRecordID !== null || response.invoiceRecordID !== undefined){
+                            this[NavigationMixin.Navigate]({
+                            type: 'standard__recordPage',
+                            attributes: {
+                                    recordId: response.invoiceRecordID,
+                                    objectApiName: 'KTMYOB__Generate_Invoice',
+                                    actionName: 'view'
+                                        },
+                                });
+                        }
+                        
                     } else {
                         this.showNotification(response.message, 'error');
                     }
@@ -914,10 +927,11 @@ export default class GenerateInvoice extends LightningElement {
     handleSaveClick(){
         this.isShowModal = false;
         this.flagForCustomerList = true;
+        this.flagForCustomerBillingAddr = true;
     }
-    clearHandler(){
-        location.reload();
-    }
+    // clearHandler(){
+    //     location.reload();
+    // }
 
     shippingSameAsBillingHandler(event){
         try{

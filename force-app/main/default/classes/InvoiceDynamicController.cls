@@ -478,6 +478,8 @@ public with sharing class InvoiceDynamicController{
 
                     if(String.isBlank(syncStatus) || syncStatus == 'Failed'){
                         objHTTP.isLogException = true;
+                    }else{
+                       cmpRes.invoiceRecordID = syncStatus.removeStart('success-');
                     }
                 }
 
@@ -610,7 +612,8 @@ public with sharing class InvoiceDynamicController{
                     if(String.isNotBlank(mapMYOBApiNameInvoiceData.get('UID').KTMYOB__Field_API_Name__c) && String.isNotBlank(invoiceObjectApiName)){
                         Schema.sObjectField invoiceExternalID = Schema.getGlobalDescribe().get(invoiceObjectApiName).getDescribe().fields.getMap().get(mapMYOBApiNameInvoiceData.get('UID').KTMYOB__Field_API_Name__c);
                         Database.upsert(lstInvoiceSynced,invoiceExternalID,true);
-                        upsertStatus = 'success';
+                        system.debug('lstInvoiceSynced--- '+lstInvoiceSynced);
+                        upsertStatus = 'success-'+lstInvoiceSynced[0].Id;
                     }
                 }
                 if(lstLineItemsSynced.size()>0 && upsertStatus == 'success'){
@@ -620,7 +623,7 @@ public with sharing class InvoiceDynamicController{
                         if(String.isNotBlank(mapMYOBApiNameLineItemData.get('RowID').KTMYOB__Field_API_Name__c) && String.isNotBlank(lineItemObjectApiName)){
                             Schema.sObjectField lineItemExternalID = Schema.getGlobalDescribe().get(lineItemObjectApiName).getDescribe().fields.getMap().get(mapMYOBApiNameLineItemData.get('RowID').KTMYOB__Field_API_Name__c);
                             Database.upsert(lstLineItemsSynced,lineItemExternalID,true);
-                            upsertStatus = 'success';
+                            upsertStatus = 'success-'+lstInvoiceSynced[0].Id;
                         }
                     }
                 }

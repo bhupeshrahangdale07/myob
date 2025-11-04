@@ -79,6 +79,30 @@
                                   disabled={disableSave}
                                   class="slds-var-m-around_large buttonColor"></lightning-button>
             </div>
+            <!-- Added NOW -->
+            <div class="slds-card__body slds-card__body_inner">
+                <div class="slds-section-title_divider slds-var-m-top_medium slds-var-m-bottom_medium">
+                    {subTitleTwo}
+                </div>
+                <div>
+                    <p>
+                        <lightning-icon icon-name="utility:info_alt" 
+                                        alternative-text="info" 
+                                        size="small" 
+                                        title="Click on the sync button to following items and metatdata from MYOB to Salesforce"></lightning-icon>
+                        &nbsp;&nbsp;
+                        {headingTwo}
+                    </p>
+                </div>
+             <template if:true={mappingConfirmation}>
+                    <div class="slds-var-m-top_medium objectSelection"><h1 style="padding-top: 4px; padding-left: 35px; font-weight: bold; font-size: 1.2em;" class="slds-var-p-top_x-small">Tax Codes</h1>
+                        <lightning-button name="taxcodes" style="margin-left: 15px;" class="buttonColor" label="Sync" icon-position="right" variant="brand" icon-name="utility:refresh" alternative-text="Refresh Tax Code" onclick={handleRefresh}></lightning-button>
+                    <!-- <lightning-button-icon name="taxcodes" icon-name="utility:refresh" variant="brand"
+									alternative-text="Refresh Tax Code"  class="slds-var-m-left_medium buttonColor"
+									onclick={handleRefresh}></lightning-button-icon> -->
+                    </div>
+              </template>
+            </div>
         </article>
         <!-- modal popup -->
         <template if:true={isModalOpen}>

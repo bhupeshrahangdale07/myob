@@ -6,6 +6,7 @@ import checkAuthorizationSteps from '@salesforce/apex/MYOB_Callout_Helper.checkA
 import fetchAllMyobProducts from '@salesforce/apex/ProductDynamicController.fetchAllMyobProducts';
 import fetchMYOBObCSConfig from '@salesforce/apex/MYOB_Component_Helper_cls.fetchMYOBObCSConfig';
 import { CloseActionScreenEvent } from 'lightning/actions';
+import { updateRecord } from 'lightning/uiRecordApi';
 
 
 export default class ProductSync extends NavigationMixin(LightningElement) {
@@ -96,53 +97,73 @@ export default class ProductSync extends NavigationMixin(LightningElement) {
     }
 
 //method: Fetch all the prdocut from MYOB as per user inputs.
-    fetchAllProductsToSf(){
+    fetchAllProductsToSf() {
+    return new Promise((resolve, reject) => {
         debugger;
         let requestObj = {};
-        if(this.showAllFilter === false){
-            requestObj = {'productId':this.recordId,'syncSingleProduct':true};
-        }else{
-            requestObj = {'syncSingleProduct':false,
-           'isItemActive':this.isActive,
-           'itemType':this.selectedValue};
+        if (this.showAllFilter === false) {
+            requestObj = {'productId': this.recordId, 'syncSingleProduct': true};
+        } else {
+            requestObj = {
+                'syncSingleProduct': false,
+                'isItemActive': this.isActive,
+                'itemType': this.selectedValue
+            };
         }
+        
         fetchAllMyobProducts({...requestObj})      
-        .then(response => {
+        .then(async response => {
             if (response.status === 'Success') {
-                this.showNotification(response.message,'success');
-                setTimeout(() => {
-                    location.reload();
-                }, 500); // Adjust delay as needed
+                await this.showNotification(response.message, 'success');
+                updateRecord({ fields: { Id: this.recordId }})
+                
+                // Close quick action after success and before resolving
+                if (this.showAllFilter === false) {
+                    await this.closeQuickAction();
+                }
                 resolve(response);
+                
             } else if (response.status === 'Failed' || response.isConnectionError) {
-                if(response.message){
-                    this.showNotification(response.message,'error');
-                }else if (response.multipleMessage){
+                if (response.message) {
+                    this.showNotification(response.message, 'error');
+                } else if (response.multipleMessage) {
                     let errrorArr = JSON.parse(response.multipleMessage);
                     errrorArr.forEach(err => {
                         let errorMsg = 
                         'Name      : ' + err.Name + ' | ' +
                         'Message   : ' + err.Message + ' | ' +
                         'ErrorCode : ' + err.ErrorCode;
-                        if(err.Severity.toLowerCase() === 'error'){
-                            this.showNotification(errorMsg,'error','sticky');
-                        }else if((err.Severity.toLowerCase() === 'warning')){
-                            this.showNotification(errorMsg,'warning','sticky');
+                        if (err.Severity.toLowerCase() === 'error') {
+                            this.showNotification(errorMsg, 'error', 'sticky');
+                        } else if ((err.Severity.toLowerCase() === 'warning')) {
+                            this.showNotification(errorMsg, 'warning', 'sticky');
                         }
                     });
-                }else{
-                    this.showNotification('Unexpected Error : Contact your System Administrator,','error');
+                } else {
+                    this.showNotification('Unexpected Error : Contact your System Administrator.', 'error');
                 }
+                
+                // Close quick action after error handling and before resolving
+                if (this.showAllFilter === false) {
+                    await this.closeQuickAction();
+                }
+                resolve(response);
             }
             this.showLoading = false;
-        }).catch(error => {
+        }).catch(async error => {
             this.showLoading = false;
-            this.showNotification('Product Sync from Salesfore to MYOB Failed. Contact System Administrator.','error');
+            this.showNotification('Product Sync from Salesforce to MYOB Failed. Contact System Administrator.', 'error');
+            
+            // Close quick action even on catch
+            if (this.showAllFilter === false) {
+                await this.closeQuickAction();
+            }
+            reject(error);
         });
-        if(this.showAllFilter === false){
-            this.closeQuickAction();
-        }
-    }
+        
+        // REMOVED: this.closeQuickAction(); from here - it was executing immediately
+    });
+}
 
     
 

@@ -8,6 +8,8 @@ import fetchSingleContactFromMYOB from '@salesforce/apex/ContactDynamicControlle
 import updateContactInSF from '@salesforce/apex/ContactDynamicController.updateContactInSF';
 import fetchMYOBObCSConfig from '@salesforce/apex/MYOB_Component_Helper_cls.fetchMYOBObCSConfig';
 import { CloseActionScreenEvent } from 'lightning/actions';
+import { RefreshEvent } from 'lightning/refresh';
+import { updateRecord } from 'lightning/uiRecordApi';
 
 export default class InvoiceSync extends LightningElement {
     @api recordId;
@@ -141,10 +143,10 @@ handleCustomerCreateUpdate(event){
     if(event.detail ==='success'){
         this.showLoading = true;
         this.closeQuickAction();
-        setTimeout(() => {
             this.showLoading = false;
-            window.location.reload();
-        }, 1000);
+            //window.location.reload();
+            updateRecord({ fields: { Id: this.recordId }})
+
     }
 }
 
@@ -167,14 +169,16 @@ handleCustomerCreateUpdate(event){
             'contactMap' : this.mappedContactFields,
             'contactId' : this.recordId,
             'isIndividual' : this.isIndividualContact
-        }).then(result=>{
+        }).then( result=>{
             if(result === 'success'){
                 this.isShowModal = false;
                 if(buttonClicked === 'Proceed'){
                     this.isShowCreateModal = true;
                 }else if(buttonClicked === 'Sync'){
-                    this.closeQuickAction();
+                     this.closeQuickAction();
                     this.showNotification('Customer Sync','Customer was successfully synced from MYOB to Salesforce','success');
+                    
+                     updateRecord({ fields: { Id: this.recordId }})
                 }    
             }else{
                 this.showNotification('Customer Sync','Customer failed to synced from MYOB to Salesforce','error');
@@ -188,10 +192,10 @@ handleCustomerCreateUpdate(event){
     }
 
     //Helper : to close the modal.
-    closeQuickAction() {
+  closeQuickAction() {
         if (typeof window !== 'undefined') {
             this.dispatchEvent(new CloseActionScreenEvent());
-        } 
+        }
     }
 
     //helper : to Show notification toast message.

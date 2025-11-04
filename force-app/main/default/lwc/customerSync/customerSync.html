@@ -43,8 +43,8 @@
         <!-- Modal Footer Start -->
          <footer class="slds-modal__footer">
             <button class="slds-button slds-button_brand buttonColor" onclick={closeQuickAction}>Cancel</button>
-            <button class="slds-button slds-button_brand buttonColor" name='Sync' onclick={upsertContactHandler}>Sync</button>
-            <button class="slds-button slds-button_brand buttonColor" name="Proceed" onclick={upsertContactHandler}>Proceed</button>
+            <button class="slds-button slds-button_brand buttonColor" title="The customer field data will simply be saved in Salesforce" name='Sync' onclick={upsertContactHandler}>Sync</button>
+            <button class="slds-button slds-button_brand buttonColor" title="The customer field data will first sync to Salesforce and then proceed to further update." name="Proceed" onclick={upsertContactHandler}>Proceed</button>
 
         </footer>
         <!-- Modal Footer End -->

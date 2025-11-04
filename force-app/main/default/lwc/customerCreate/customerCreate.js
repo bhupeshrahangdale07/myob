@@ -295,12 +295,12 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
             if(response){
                 if(response.contactCompanyObjectApiName === this.objectApiName){
                     this.customerType = 'Company';
+                    this.isIndividual = false;
                     this.disableCustomerType = true;
                     this.contactFieldMappings = response.mapMYOBApiNameCompanyData;
                 }else if(response.contactIndividualObjectApiName === this.objectApiName){
                     this.customerType = 'Individual';
                     this.isIndividual = true;
-                    this.isIndividualContact = true;
                     this.disableCustomerType = true;
                     this.contactFieldMappings = response.mapMYOBApiNameIndividualData;
                 }
@@ -371,24 +371,30 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
 
 
 //Method: check user input validity and Create/update record in MYOb and then sync in salesforce.
-    createUpdateInMYOB(){
+    createUpdateInMYOB(event){
         try{
             this.reportFieldValidity();
             console.log('this.allValid- '+this.allValid);
+            console.log('this.recordId- '+this.recordId);
             if(this.recordId && this.objectApiName && this.customerRecord && this.allValid){
-                this.showLoading = true;                
-                this.recordId = this.recordId.trim().slice(0, -3);            
+                this.showLoading = true;  
+                //Todo : check the recordID size of 15 or 18 and then slice accordingly. If 18 slice if 15 ignore.
+                let recId = this.recordId.trim().slice(0, -3);
                 createUpdateContact({
-                    'contactId' : this.recordId,
+                    'contactId' : recId,
                     'objectApiName' : this.objectApiName,
                     'mapMYOBContactFldNameSfValue' :this.customerRecord,
-                    'isIndividual':this.individualContact
+                    'isIndividual':this.isIndividual
                 })
                 .then(response => {
                     this.showLoading = false;
                     if (response.status === 'Success') {
                         this.showNotification(response.message,'success');
                         this.dispatchEvntOnSuccessOrError('success');
+                        if (!this.fromGenerateInvoice){
+                            this.redirectToRecordPage(this.recordId,this.objectApiName);
+                        }
+                        this.closeQuickAction(); 
                     } else if (response.status === 'Failed' || response.isConnectionError) {
                         if(response.message){
                             this.showNotification(response.message,'error');
@@ -408,7 +414,7 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                         }else{
                             this.showNotification('Unexpected Error : Contact your System Administrator,','error');
                         }    
-                        this.closeQuickAction();            
+  
                     }   
                 })
                 .catch(error => {
@@ -436,7 +442,11 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
         });
         this.dispatchEvent(selectEvent);
         this.isShowModal=false;
-        this.closeQuickAction();
+        
+               
+        this.dispatchEvent(new CustomEvent('saveclick'));
+        this.dispatchEvent(new CloseActionScreenEvent());
+       
     }
   
 
@@ -536,6 +546,17 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
                 mode : mode
             }));
         }
+    }
+
+    redirectToRecordPage(recordId,objectApiName){
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: recordId,
+                objectApiName: objectApiName,
+                actionName: 'view'
+            }
+        });
     }
 }
 

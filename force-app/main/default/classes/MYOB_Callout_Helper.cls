@@ -304,6 +304,7 @@ public without sharing class MYOB_Callout_Helper {
         @AuraEnabled public string multipleMessage;
         @AuraEnabled public boolean isConnectionError;
         @AuraEnabled public List<Object> lstData;
+        @AuraEnabled public string invoiceRecordID;
 
         public ComponentResponse(){
             status= '';
@@ -311,6 +312,7 @@ public without sharing class MYOB_Callout_Helper {
             multipleMessage=''; //Add the error in JSON Format to add multiple messages.
             isConnectionError=false;
             lstData = new List<Object>();
+            invoiceRecordID = '';
         }
     }
 

@@ -5,6 +5,7 @@ import getObjectList from "@salesforce/apex/InvoiceConfigController.getObjectLis
 import getInvoiceCusSettingFields from "@salesforce/apex/InvoiceConfigController.getInvoiceCusSettingFields";
 import updateContactConfig from "@salesforce/apex/InvoiceConfigController.updateContactConfig";
 import saveObjectConfiguration from "@salesforce/apex/InvoiceConfigController.saveObjectConfiguration";
+import fetchAllTaxCodesFromMYOB from "@salesforce/apex/MYOB_MetaDataDynamicController.fetchAllTaxCodesFromMYOB";
 const  DELAY1000 = 1000,
        ZERO_NUM = 0;
        
@@ -22,6 +23,8 @@ export default class InvoiceConfigurationCmp extends LightningElement {
     componentTitle = "Invoice Configuration";
     subTitleOne = "MYOB INVOICE DEFAULT OBJECT AND FIELD MAPPING SETTING";
     headingOne = "Search and Select Object to store Invoice and map Object fields";
+    subTitleTwo="Sync all the related items and metatdata from MYOB to Salesforce";
+    headingTwo="Click on the sync button to following items and metatdata from MYOB to Salesforce";
     invoiceConfig;
     invoiceObjectSelected = "";
     oldInvoiceObjectSelected = "";
@@ -461,6 +464,44 @@ export default class InvoiceConfigurationCmp extends LightningElement {
 
         }
 
+    }
+
+
+    get mappingConfirmation(){
+        if(this.lineitemObjectSelected && this.invoiceObjectSelected){
+            return true;
+        }
+        return false;
+    }
+
+    handleRefresh (event) {
+        const {name} = event.target;
+        if (name === "taxcodes") {
+            this.taxCodeSync();
+        }
+    }
+
+    taxCodeSync () {
+        this.showLoading = true;
+        fetchAllTaxCodesFromMYOB({}).
+        then((result) => {
+            if (result === 'Success') {
+                this.showToastPopMessage(
+                    "MYOB Tax codes, successfully synced with Salesforce",
+                    "success");
+            }else if(result === 'Failed') {
+                this.showToastPopMessage(
+                    "MYOB Tax codes,failed to sync with Salesforce",
+                    "error");
+            }
+            this.showLoading = false;
+        }).
+        catch((error)=>{
+             this.showToastPopMessage(
+                `Something went wrong. Error - ${error}`,
+                "error");
+            this.showLoading = false;
+        });
     }
 
 }
