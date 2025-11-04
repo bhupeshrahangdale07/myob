@@ -375,7 +375,6 @@ export default class CustomerCreate extends NavigationMixin(LightningElement) {
         try{
             this.reportFieldValidity();
             console.log('this.allValid- '+this.allValid);
-            console.log('this.recordId- '+this.recordId);
             if(this.recordId && this.objectApiName && this.customerRecord && this.allValid){
                 this.showLoading = true;  
                 //Todo : check the recordID size of 15 or 18 and then slice accordingly. If 18 slice if 15 ignore.
